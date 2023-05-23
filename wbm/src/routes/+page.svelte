@@ -1,141 +1,171 @@
 <script>
-    import { worlds } from '../store';
-
     import Header from "./components/Header.svelte";
     import Footer from "./components/Footer.svelte";
-    import Modal from "./components/Modal.svelte"
+    import Modal from "./components/Modal.svelte";
     import AddWorldForm from "./components/AddWorldForm.svelte";
 
+    import { worlds, selectedWorld } from "../store";
+
     let showForm = false;
+    let world = worlds;
+    let sworld = [{
+        name: '', desc: '', profile: '', id: 0 
+    }];
 
-    const ShowForm = () =>{
+    
+    function handleClick(id) {
+        console.log(id);
+
+        fetch('/api/worlds/select', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id })
+        })
+            .then(response => response.json())
+            .then(selectedWorld => {
+                console.log(selectedWorld);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+}
+    
+    const ShowForm = () => {
         showForm = !showForm;
-      }
+    };
 
-    
-    let world = $worlds;
-
-    
-
-   
-    const AddWorld = (e) =>{ 
-        const newworld = (e.detail);
+    // @ts-ignore
+    const AddWorld = (e) => {
+        const newworld = e.detail;
 
         world = [newworld, ...world];
 
         showForm = false;
-        
-    }
-  
-    const DeleteWorld = (id) =>{
-        world = world.filter((world) => world.id != id);
-    }
+    };
 
+    // @ts-ignore
+    const DeleteWorld = (id) => {
+        world = (world).filter((world) => world.id != id);
+    };
 </script>
 
-
-
 <!-- Header -->
-<Header /> 
+<Header />
 
 <!-- New World Form -->
 <Modal {showForm}>
-  <AddWorldForm on:AddWorldtoList={AddWorld}/>
+    <AddWorldForm on:AddWorldtoList={AddWorld} />
 </Modal>
-
 
 <!-- World Gallery -->
 <body>
-<div class="wrapper" class:hidden={showForm}>
-    <img class="arrow" src="./src/assets/back_arrow.png" alt="" id="backward">
-    <div class="carousel">
-
-        <container class="world">
-            <container class="worldbutton" title="Add New World">
-                <!-- Name -->
-                <h2 class="name">Add New World</h2>
-                <!-- Button Shape -->
-                <button on:click={ShowForm}><img src = "./src/assets/add_world_icon.png" alt=""></button>
-                <!-- Profile Picture -->
-                <img class="profile"  src="./src/assets/blank_world_profile.png" alt="">
-            </container>
-        </container>
-    
-        {#each world as world}  
+    <div class="wrapper" class:hidden={showForm}>
+        <img
+            class="arrow" src="./src/assets/back_arrow.png" alt="" id="backward"
+        />
+        <div class="carousel">
             <container class="world">
-                <container class="worldbutton" title = "{world.name}">
+                <container class="worldbutton" title="Add New World">
                     <!-- Name -->
-                    <h2 class="name">{world.name}</h2>
-                    <!-- Description -->
-                    <p class="desc">{world.desc}</p>
+                    <h2 class="name">Add New World</h2>
                     <!-- Button Shape -->
-                    <button><img src = "./src/assets/world_icon.png" alt=""></button>
+                    <button on:click={ShowForm}
+                        ><img
+                            src="./src/assets/add_world_icon.png"
+                            alt=""
+                        /></button
+                    >
                     <!-- Profile Picture -->
-                    <img class="profile" src = {world.profile} alt="">
+                    <img
+                        class="profile"
+                        src="./src/assets/blank_world_profile.png"
+                        alt=""
+                    />
                 </container>
-
-                <button on:dblclick={() => DeleteWorld(world.id)} title="Delete {world.name}" class="delete" ><img src="./src/assets/delete.png" alt=""></button>
             </container>
-        {/each}
-    </div>  
-    <img class="arrow" src="./src/assets/forward_arrow.png" alt="" id="forward">
-</div>
+
+            {#each world as world}
+                <container class="world">
+                    <container class="worldbutton" title={world.name}>
+                        <!-- Name -->
+                        <h2 class="name">{world.name}</h2>
+                        <!-- Description -->
+                        <p class="desc">{world.desc}</p>
+                        <!-- Button Shape -->
+                        <button on:click={() => handleClick(world.id)}  data-sveltekit-preload-data="tap"><a href="/worldmenu">
+                            <img src="./src/assets/world_icon.png" alt=''>
+                        </a></button>
+                        <!-- Profile Picture -->
+                        <img class="profile" src={world.profile} alt="" />
+                    </container>
+
+                    <button
+                        on:dblclick={() => DeleteWorld(world.id)}
+                        title="Delete {world.name}"
+                        class="delete"
+                        ><img src="./src/assets/delete.png" alt="" /></button
+                    >
+                </container>
+            {/each}
+        </div>
+        <img
+            class="arrow"
+            src="./src/assets/forward_arrow.png"
+            alt=""
+            id="forward"
+        />
+    </div>
 </body>
 
 <!-- Footer -->
 <Footer />
-
-
 
 <style>
     body {
         display: grid;
         align-items: center;
         justify-items: center;
-        
-        
     }
     .wrapper {
         max-width: 1280px;
         width: 100%;
     }
 
-    .arrow{
+    .arrow {
         height: 45px;
         width: auto;
         cursor: pointer;
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-
     }
 
     #forward {
         right: 60px;
     }
-    #backward{
+    #backward {
         left: 60px;
     }
 
-    .wrapper  .carousel {
+    .wrapper .carousel {
         overflow: hidden;
         display: grid;
         grid-auto-flow: column;
-        grid-auto-columns: calc((100%/3)-12px);
+        grid-auto-columns: calc((100% / 3)-12px);
     }
 
-    .carousel .world{
+    .carousel .world {
         list-style: none;
         border-radius: 8px;
         align-items: center;
         justify-content: center;
         flex-direction: column;
     }
- 
 
-    div{
+    div {
         display: flex;
-        
     }
 
     container {
@@ -155,7 +185,7 @@
         inline-size: 250px;
         text-shadow: 2px 2px rgba(0, 0, 0, 0.305);
     }
-    
+
     .desc {
         text-transform: uppercase;
         color: white;
@@ -171,13 +201,12 @@
         cursor: pointer;
         background: transparent;
         border: transparent;
-        
     }
 
-    img {  
-        max-width: auto;  
-        height: 75%; 
-    } 
+    img {
+        max-width: auto;
+        height: 75%;
+    }
 
     .profile {
         filter: grayscale() opacity(80%);
@@ -189,7 +218,6 @@
         border-radius: 50%;
         transition-duration: 200ms;
         transition-timing-function: ease-in-out;
-        
     }
     .profile:hover {
         filter: none;
@@ -207,14 +235,13 @@
         filter: none;
         transition-duration: 200ms;
         transition-timing-function: ease-in-out;
-        
     }
 
     .delete {
         filter: grayscale();
         opacity: 50%;
-        position:absolute;
-        width:auto;
+        position: absolute;
+        width: auto;
         height: 10%;
         top: 500px;
         left: 45%;
@@ -229,8 +256,7 @@
         transition-timing-function: ease-in-out;
     }
 
-    .hidden{
-        display:none;
+    .hidden {
+        display: none;
     }
-    
 </style>
