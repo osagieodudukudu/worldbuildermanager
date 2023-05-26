@@ -1,22 +1,36 @@
 <script>
+    import { onMount } from 'svelte';
+    
     import Header from "./components/Header.svelte";
     import Footer from "./components/Footer.svelte";
     import Modal from "./components/Modal.svelte";
     import AddWorldForm from "./components/AddWorldForm.svelte";
 
-    import { worlds, selectedWorld } from "../store";
-
     let showForm = false;
-    let world = worlds;
-    let sworld = [{
-        name: '', desc: '', profile: '', id: 0 
-    }];
-
     
+    // @ts-ignore
+    let worlds = [];
+
+    onMount(async () => {
+        try {
+
+        const response = await fetch('http://localhost:3000/api/worlds');
+        worlds = await response.json();
+        console.log('Response:', worlds);
+
+        } 
+        catch (error) {
+
+        console.error('Error retrieving worlds:', error);
+        
+        }
+  });
+
+    // @ts-ignore
     function handleClick(id) {
         console.log(id);
 
-        fetch('/api/worlds/select', {
+        fetch('http://localhost:3000/api/worlds/select', {
             method: 'POST',
             headers: {
             'Content-Type': 'application/json'
@@ -30,7 +44,7 @@
             .catch(error => {
                 console.error('Error:', error);
             });
-}
+    }
     
     const ShowForm = () => {
         showForm = !showForm;
@@ -40,14 +54,42 @@
     const AddWorld = (e) => {
         const newworld = e.detail;
 
-        world = [newworld, ...world];
+        fetch('http://localhost:3000/api/worlds/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newworld)
+        })
+            .then(response => response.json())
+            .then(addedWorld => {
+            console.log('Added World:', addedWorld);
+        
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
 
-        showForm = false;
+      showForm = !showForm;
     };
 
     // @ts-ignore
     const DeleteWorld = (id) => {
-        world = (world).filter((world) => world.id != id);
+
+        fetch(`http://localhost:3000/api/worlds/delete/${id}`, {
+            method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                console.log('World deleted successfully');
+                
+                } else {
+                console.error('Error:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     };
 </script>
 
@@ -86,7 +128,7 @@
                 </container>
             </container>
 
-            {#each world as world}
+            {#each worlds as world}
                 <container class="world">
                     <container class="worldbutton" title={world.name}>
                         <!-- Name -->

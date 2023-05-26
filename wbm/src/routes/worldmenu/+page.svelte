@@ -1,15 +1,21 @@
 <script>
-    import { selectedWorld } from '../../store';
+    import { onMount } from 'svelte';
     import Footer from "../components/Footer.svelte";
-    import Modal from '../components/Modal.svelte';
 
     let SelectedWorld = [{
         name: '', desc: '', profile: '', id: 0 
     }];
 
-    selectedWorld.subscribe(value => {
-        SelectedWorld = value;
-    });
+    onMount(() => {
+        fetch('/api/worlds/selected')
+        .then(response => response.json())
+        .then(data => {
+            SelectedWorld = data;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+  });
 
 </script>
 
