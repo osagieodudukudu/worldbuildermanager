@@ -8,23 +8,37 @@
 
     let showForm = false;
     
-    // @ts-ignore
+  
+    /**
+     * @type {any[]}
+     */
     let worlds = [];
 
     onMount(async () => {
         try {
+            const response = await fetch('http://localhost:3000/api/worlds');
+            
+            if (response.ok) {
 
-        const response = await fetch('http://localhost:3000/api/worlds');
-        worlds = await response.json();
-        console.log('Response:', worlds);
+            worlds = await response.json();
+            console.log('Response:', worlds);
 
+            } 
+            
+            else {
+
+            throw new Error('Failed to fetch worlds');
+
+            }
         } 
+        
         catch (error) {
 
-        console.error('Error retrieving worlds:', error);
-        
+            console.error('Error retrieving worlds:', error);
+
         }
-  });
+        });
+
 
     // @ts-ignore
     function handleClick(id) {
@@ -38,59 +52,83 @@
             body: JSON.stringify({ id })
         })
             .then(response => response.json())
+
             .then(selectedWorld => {
+
                 console.log(selectedWorld);
+
             })
+
             .catch(error => {
+
                 console.error('Error:', error);
+
             });
     }
     
     const ShowForm = () => {
+
         showForm = !showForm;
+
     };
 
     // @ts-ignore
     const AddWorld = (e) => {
-        const newworld = e.detail;
+    
+        console.log(e.detail);
+        const newWorld = e.detail;
 
         fetch('http://localhost:3000/api/worlds/add', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
             },
-            body: JSON.stringify(newworld)
+            body: JSON.stringify(newWorld),
         })
-            .then(response => response.json())
-            .then(addedWorld => {
-            console.log('Added World:', addedWorld);
-        
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
+            .then((response) => {
+    
+                if (response.ok) {
+                return response.json();
+            } 
+            
+            else {
+                throw new Error('Failed to add world');
+            }
+            
+        })
+            .then((addedWorld) => {
 
-      showForm = !showForm;
-    };
+            console.log('Added World:', addedWorld);
+            worlds = [addedWorld, ...worlds];
+
+            showForm = !showForm;
+
+            })
+
+            .catch((error) => {
+            console.error('Error:', error);
+
+            });
+};
+
 
     // @ts-ignore
     const DeleteWorld = (id) => {
-
-        fetch(`http://localhost:3000/api/worlds/delete/${id}`, {
-            method: 'DELETE'
-            })
-            .then(response => {
-                if (response.ok) {
+    fetch(`http://localhost:3000/api/worlds/delete/${id}`, {
+        method: 'DELETE',
+    })
+        .then((response) => {
+            if (response.ok) {
                 console.log('World deleted successfully');
-                
-                } else {
-                console.error('Error:', response.status);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    };
+                worlds = worlds.filter((world) => world.id !== id);
+            } else {
+                throw new Error(`Failed to delete world with ID ${id}`);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+};
 </script>
 
 <!-- Header -->
@@ -127,6 +165,7 @@
                     />
                 </container>
             </container>
+            {#if worlds && worlds.length > 0}
 
             {#each worlds as world}
                 <container class="world">
@@ -151,7 +190,10 @@
                     >
                 </container>
             {/each}
+            {/if}
         </div>
+
+
         <img
             class="arrow"
             src="./src/assets/forward_arrow.png"

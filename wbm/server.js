@@ -12,12 +12,11 @@ app.use(cors());
 const worldSchema = new Schema({
   name: String,
   desc: String,
-  profile: String,
   id: { type: Number, unique: true }
 });
 
-const worlds = model('worlds', worldSchema);
-export default worlds;
+const Worlds = model('Worlds', worldSchema);
+export default Worlds;
 
 let URL = "mongodb://127.0.0.1:27017/worldbuilder"
 
@@ -39,32 +38,31 @@ connect(URL, {
 
 
 // Return Worlds
-app.get('/api/worlds', async (req, res) => {
+app.get('/api/Worlds', async (req, res) => {
   try {
-    
-    const worlds = await worlds.find();
+
+    const worlds = await Worlds.find();
     res.json(worlds);
 
   } 
   catch (error) {
 
-    console.error('Error retrieving worlds:', error);
+    console.error('Error retrieving Worlds:', error);
     res.status(500).json({ error: 'Internal Server Error' });
-
+    
   }
 });
 
-// Save Selected worlds
-app.post('/api/worlds/select', async (req, res) => {
+// Save Selected Worlds
+app.post('/api/Worlds/select', async (req, res) => {
   try {
     const { id } = req.body;
-    const selectedWorld = await worlds.findOne({ id: Number(id) });
+    const selectedWorld = await Worlds.findOne({ id: Number(id) });
 
-    
     if (!selectedWorld) {
-      return res.status(404).json({ error: 'worlds not found' });
+      return res.status(404).json({ error: 'World not found' });
     }
-    
+
     res.json(selectedWorld);
   } catch (error) {
     console.error('Error selecting world:', error);
@@ -72,10 +70,10 @@ app.post('/api/worlds/select', async (req, res) => {
   }
 });
 
-// Return Selected worlds
-app.get('/api/worlds/selected', async (req, res) => {
+// Return Selected Worlds
+app.get('/api/Worlds/selected', async (req, res) => {
   try {
-    const selectedWorld = await worlds.findOne({ selected: true });
+    const selectedWorld = await Worlds.findOne({ selected: true });
 
     if (selectedWorld) {
       res.json(selectedWorld);
@@ -88,11 +86,12 @@ app.get('/api/worlds/selected', async (req, res) => {
   }
 });
 
-// Add worlds
-app.post('/api/worlds/add', async (req, res) => {
+// Add Worlds
+app.post('/api/Worlds/add', async (req, res) => {
   try {
     const newWorld = req.body;
-    const createdWorld = await worlds.create(newWorld);
+    console.log(newWorld);
+    const createdWorld = await Worlds.create(newWorld);
     res.json(createdWorld);
   } 
   
@@ -104,11 +103,11 @@ app.post('/api/worlds/add', async (req, res) => {
 
 
 
-// Delete worlds 
-app.delete('/api/worlds/:id', async (req, res) => {
+// Delete Worlds 
+app.delete('/api/Worlds/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await worlds.findByIdAndDelete(id);
+    await Worlds.findByIdAndDelete(id);
     res.sendStatus(204);
   } 
   
