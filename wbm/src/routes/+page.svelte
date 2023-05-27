@@ -114,20 +114,25 @@
 
     // @ts-ignore
     const DeleteWorld = (id) => {
-    fetch(`http://localhost:3000/api/worlds/delete/${id}`, {
-        method: 'DELETE',
-    })
-        .then((response) => {
+        fetch(`http://localhost:3000/api/worlds/${id}`, {
+            method: 'DELETE',
+        })
+            .then((response) => {
             if (response.ok) {
                 console.log('World deleted successfully');
-                worlds = worlds.filter((world) => world.id !== id);
+                // Fetch the updated list of worlds after deletion
+                return fetch('http://localhost:3000/api/worlds');
             } else {
                 throw new Error(`Failed to delete world with ID ${id}`);
             }
-        })
-        .catch((error) => {
+            })
+            .then((response) => response.json())
+            .then((updatedWorlds) => {
+            worlds = updatedWorlds;
+            })
+            .catch((error) => {
             console.error('Error:', error);
-        });
+            });
 };
 </script>
 

@@ -12,11 +12,10 @@ app.use(cors());
 const worldSchema = new Schema({
   name: String,
   desc: String,
-  id: { type: Number, unique: true }
+  id: Number
 });
 
-const Worlds = model('Worlds', worldSchema);
-export default Worlds;
+const worlds = model('world', worldSchema);
 
 let URL = "mongodb://127.0.0.1:27017/worldbuilder"
 
@@ -38,26 +37,27 @@ connect(URL, {
 
 
 // Return Worlds
-app.get('/api/Worlds', async (req, res) => {
+app.get('/api/worlds', async (_, res) => {
   try {
 
-    const worlds = await Worlds.find();
-    res.json(worlds);
+    const allworlds = await worlds.find().exec();
+    res.json(allworlds);
 
   } 
+  
   catch (error) {
 
     console.error('Error retrieving Worlds:', error);
     res.status(500).json({ error: 'Internal Server Error' });
-    
+
   }
 });
 
 // Save Selected Worlds
-app.post('/api/Worlds/select', async (req, res) => {
+app.post('/api/worlds/select', async (req, res) => {
   try {
     const { id } = req.body;
-    const selectedWorld = await Worlds.findOne({ id: Number(id) });
+    const selectedWorld = await worlds.findOne({ id: Number(id) });
 
     if (!selectedWorld) {
       return res.status(404).json({ error: 'World not found' });
@@ -71,9 +71,9 @@ app.post('/api/Worlds/select', async (req, res) => {
 });
 
 // Return Selected Worlds
-app.get('/api/Worlds/selected', async (req, res) => {
+app.get('/api/worlds/selected', async (_, res) => {
   try {
-    const selectedWorld = await Worlds.findOne({ selected: true });
+    const selectedWorld = await worlds.findOne({ selected: true });
 
     if (selectedWorld) {
       res.json(selectedWorld);
@@ -87,11 +87,11 @@ app.get('/api/Worlds/selected', async (req, res) => {
 });
 
 // Add Worlds
-app.post('/api/Worlds/add', async (req, res) => {
+app.post('/api/worlds/add', async (req, res) => {
   try {
     const newWorld = req.body;
     console.log(newWorld);
-    const createdWorld = await Worlds.create(newWorld);
+    const createdWorld = await worlds.create(newWorld);
     res.json(createdWorld);
   } 
   
@@ -104,16 +104,19 @@ app.post('/api/Worlds/add', async (req, res) => {
 
 
 // Delete Worlds 
-app.delete('/api/Worlds/:id', async (req, res) => {
+app.delete('/api/worlds/:id', async (req, res) => {
   try {
+
     const { id } = req.params;
-    await Worlds.findByIdAndDelete(id);
-    res.sendStatus(204);
+    await worlds.deleteOne({ id: Number(id) });
+    res.sendStatus(204); 
+    
   } 
-  
   catch (error) {
+
     console.error('Error deleting world:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+
   }
 });
 
