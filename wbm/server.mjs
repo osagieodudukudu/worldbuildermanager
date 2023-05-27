@@ -106,17 +106,15 @@ app.post('/api/worlds/add', async (req, res) => {
 // Delete Worlds 
 app.delete('/api/worlds/:id', async (req, res) => {
   try {
-
     const { id } = req.params;
-    await worlds.deleteOne({ id: Number(id) });
-    res.sendStatus(204); 
-    
+    const numericId = Number(id); // Convert id from string to number
+    await worlds.deleteOne({ id: numericId });
+    res.sendStatus(204);
   } 
+  
   catch (error) {
-
     console.error('Error deleting world:', error);
     res.status(500).json({ error: 'Internal Server Error' });
-
   }
 });
 

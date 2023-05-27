@@ -8,11 +8,11 @@
 
     let showForm = false;
     
-  
     /**
      * @type {any[]}
      */
     let worlds = [];
+
 
     onMount(async () => {
         try {
@@ -120,19 +120,19 @@
             .then((response) => {
             if (response.ok) {
                 console.log('World deleted successfully');
-                // Fetch the updated list of worlds after deletion
                 return fetch('http://localhost:3000/api/worlds');
-            } else {
+            } 
+            else {
                 throw new Error(`Failed to delete world with ID ${id}`);
             }
             })
             .then((response) => response.json())
             .then((updatedWorlds) => {
-            worlds = updatedWorlds;
-            })
+                worlds = updatedWorlds;
+                })
             .catch((error) => {
-            console.error('Error:', error);
-            });
+                console.error('Error:', error);
+                });
 };
 </script>
 
