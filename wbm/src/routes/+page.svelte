@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount, afterUpdate} from 'svelte';
     
     import Header from "./components/Header.svelte";
     import Footer from "./components/Footer.svelte";
@@ -12,8 +12,7 @@
      * @type {any[]}
      */
     let worlds = [];
-
-
+   
     onMount(async () => {
         try {
             const response = await fetch('http://localhost:3000/api/worlds');
@@ -130,12 +129,13 @@
             })
             .then((response) => response.json())
             .then((updatedWorlds) => {
-                worlds = updatedWorlds;
+                worlds = updatedWorlds.reverse();
                 })
             .catch((error) => {
                 console.error('Error:', error);
                 });
 };
+
 </script>
 
 <!-- Header -->
@@ -143,15 +143,16 @@
 
 <!-- New World Form -->
 <Modal {showForm}>
-    <AddWorldForm on:AddWorldtoList={AddWorld} />
+    <AddWorldForm on:AddWorldtoList={AddWorld} on:Cancel={ShowForm}/>
 </Modal>
 
 <!-- World Gallery -->
 <body>
     <div class="wrapper" class:hidden={showForm}>
-        <img
-            class="arrow" src="./src/assets/back_arrow.png" alt="" id="backward"
-        />
+        <img class="arrow" 
+        src="./src/assets/back_arrow.png" 
+        alt=""
+        id='backward'>
         <div class="carousel">
             <container class="world">
                 <container class="worldbutton" title="Add New World">
@@ -174,7 +175,7 @@
             </container>
             {#if worlds && worlds.length > 0}
 
-            {#each worlds as world}
+            {#each worlds as world, index}
                 <container class="world">
                     <container class="worldbutton" title={world.name}>
                         <!-- Name -->
@@ -240,8 +241,11 @@
         left: 60px;
     }
 
-    .wrapper .carousel {
+    .wrapper{
         overflow: hidden;
+    }
+
+    .carousel {
         display: grid;
         grid-auto-flow: column;
         grid-auto-columns: calc((100% / 3)-12px);
@@ -350,4 +354,5 @@
     .hidden {
         display: none;
     }
+
 </style>
