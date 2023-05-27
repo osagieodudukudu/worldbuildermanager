@@ -19,8 +19,10 @@
             const response = await fetch('http://localhost:3000/api/worlds');
             
             if (response.ok) {
+            //Keep Consistent Order of Worlds
+            const inverseworlds = await response.json();
+            worlds = inverseworlds.reverse();
 
-            worlds = await response.json();
             console.log('Response:', worlds);
 
             } 
