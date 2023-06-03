@@ -2,7 +2,7 @@
 
 <header>
   <h1>The<br>WorldBuilder<br>Manager</h1>
-  <p>- Manage your multiverse -</p>
+  <br><br><p>- Manage your multiverse -</p>
 </header>
 
 <style>

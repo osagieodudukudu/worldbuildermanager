@@ -1,5 +1,5 @@
 <script>
-    import { onMount, afterUpdate} from 'svelte';
+    import { onMount } from 'svelte';
     
     import Header from "./components/Header.svelte";
     import Footer from "./components/Footer.svelte";
@@ -43,30 +43,38 @@
 
     // @ts-ignore
     function handleClick(id) {
-        console.log(id);
-
-        fetch('http://localhost:3000/api/worlds/select', {
-            method: 'POST',
-            headers: {
+    console.log(id);
+        
+    fetch(`http://localhost:3000/api/worlds/select/${id}`, {
+        method: 'POST',
+        headers: {
             'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id })
+        },
+        body: JSON.stringify({ id: id })
+    })
+        .then(response => {
+            if (response.status === 204) {
+
+                console.log('World selected successfully');
+
+            } else if (response.ok) {
+
+                return response.json();
+                
+            } else {
+                throw new Error('Failed to select world');
+            }
         })
-            .then(response => response.json())
+        .then(selectedWorld => {
+            console.log(selectedWorld);
+            window.location.href = '/worldmenu';
+        })    
+        .catch(error => {
+            console.error('Error:', error);
+        });
+};
 
-            .then(selectedWorld => {
-
-                console.log(selectedWorld);
-
-            })
-
-            .catch(error => {
-
-                console.error('Error:', error);
-
-            });
-    }
-    
+        
     const ShowForm = () => {
 
         showForm = !showForm;
@@ -149,10 +157,6 @@
 <!-- World Gallery -->
 <body>
     <div class="wrapper" class:hidden={showForm}>
-        <img class="arrow" 
-        src="./src/assets/back_arrow.png" 
-        alt=""
-        id='backward'>
         <div class="carousel">
             <container class="world">
                 <container class="worldbutton" title="Add New World">
@@ -175,7 +179,7 @@
             </container>
             {#if worlds && worlds.length > 0}
 
-            {#each worlds as world, index}
+            {#each worlds as world}
                 <container class="world">
                     <container class="worldbutton" title={world.name}>
                         <!-- Name -->
@@ -183,31 +187,20 @@
                         <!-- Description -->
                         <p class="desc">{world.desc}</p>
                         <!-- Button Shape -->
-                        <button on:click={() => handleClick(world.id)}  data-sveltekit-preload-data="tap"><a href="/worldmenu">
+                        <button on:click={() => handleClick(world.id)}  data-sveltekit-preload-data="tap">
                             <img src="./src/assets/world_icon.png" alt=''>
-                        </a></button>
+                        </button>
                         <!-- Profile Picture -->
-                        <img class="profile" src={world.profile} alt="" />
+                        <img class="profile" src={world.profile ? world.profile : './src/assets/blank_world_profile.png'} alt="" />
                     </container>
 
-                    <button
-                        on:dblclick={() => DeleteWorld(world.id)}
-                        title="Delete {world.name}"
-                        class="delete"
-                        ><img src="./src/assets/delete.png" alt="" /></button
-                    >
+                    <button on:dblclick={() => DeleteWorld(world.id)} title="Delete {world.name}" class="delete"> 
+                        <img src="./src/assets/delete.png" alt="" />
+                    </button>
                 </container>
             {/each}
             {/if}
         </div>
-
-
-        <img
-            class="arrow"
-            src="./src/assets/forward_arrow.png"
-            alt=""
-            id="forward"
-        />
     </div>
 </body>
 
@@ -225,24 +218,9 @@
         width: 100%;
     }
 
-    .arrow {
-        height: 45px;
-        width: auto;
-        cursor: pointer;
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    #forward {
-        right: 60px;
-    }
-    #backward {
-        left: 60px;
-    }
-
     .wrapper{
-        overflow: hidden;
+        overflow-x: scroll;
+        overflow-y: hidden;
     }
 
     .carousel {
@@ -287,7 +265,9 @@
         position: absolute;
         text-align: center;
         top: 55%;
+        height: 92px;
         overflow-wrap: break-word;
+        overflow-y: hidden;
         inline-size: 250px;
     }
 
@@ -307,7 +287,7 @@
         filter: grayscale() opacity(80%);
         position: absolute;
         top: 109px;
-        width: auto;
+        width: 125px;
         height: 22%;
         overflow: hidden;
         border-radius: 50%;
