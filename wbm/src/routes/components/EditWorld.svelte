@@ -1,46 +1,63 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
+    import { writable } from 'svelte/store';
 
     let dispatch = createEventDispatcher();
 
     /**
-     * @type {string}
+     * @type { string }
      */
-     let name;
+    let name;
     /**
-     * @type {string | null | undefined}
+     * @type { string }
      */
     let desc;
     /**
-     * @type {string | null | ArrayBuffer}
+     * @type { string | ArrayBuffer | null }
      */
     let profile;
     /**
-     * @type {string | null | ArrayBuffer}
+     * @type { string | ArrayBuffer | null }
      */
     let map;
+     /**
+     * @type { number }
+     */
+    let id;
     /**
-     * @type {Boolean}
+     * @type { Boolean }
      */
     let submitting;
 
 
 
 
-    let existingWorldData = {
-        name: 'World Name',
-        desc: 'World Description',
+    let SelectedWorld = writable({
+        name: '',
+        desc: '',
         profile: null, 
-    }
-
-    onMount(() => {
-        
-        name = existingWorldData.name;
-        desc = existingWorldData.desc;
-        profile = existingWorldData.profile;
+        map: null,
+        id: 0,
     });
 
-  function handleSubmit() {
+    onMount(async() => {
+
+        const response = await fetch('http://localhost:3000/api/worlds/selected');
+
+        if (response.ok) {
+            const data = await response.json();
+            SelectedWorld.set(data);
+            console.log('Response:', data);
+        }
+        
+        name = $SelectedWorld.name;
+        desc = $SelectedWorld.desc;
+        profile = $SelectedWorld.profile;
+        map = $SelectedWorld.map;
+        id = $SelectedWorld.id;
+    });
+
+    function handleSubmit() {
     submitting = true; 
 
     if (desc === undefined) {
@@ -49,7 +66,6 @@
     if (profile === undefined) {
         profile = '';
     }
-    map = "";
 
     if (name) {
         const fileInput = document.querySelector('input[type="file"]');
@@ -61,7 +77,7 @@
             desc,
             profile,
             map,
-            id: Math.random(),
+            id,
             };
 
             dispatch('UpdateWorldtoList', world);
@@ -69,22 +85,30 @@
         
         else {
             window.alert('File size exceeds 2MB limit');
-            fileInput.value = '';
-            profile = ''; 
+            fileInput.value = $SelectedWorld.profile;
+            profile = $SelectedWorld.profile; 
             submitting = false;
         }
     }
   }
 
-  function handleFileChange(event) {
-    // Handle file change
-    // Update the profile image
-  }
+    function handleFileChange(event) {
+        const file = event.target.files[0];
 
-  function handleCancel() {
-    // Handle cancel action
-    // Close the form or navigate back
-  }
+        const reader = new FileReader();
+
+        reader.onload = () => {
+        profile = reader.result; 
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    function handleCancel() {
+
+        dispatch('Cancel');
+
+    }
 
 </script>
 
@@ -92,9 +116,7 @@
 <form on:submit|preventDefault={handleSubmit}>
     <h3>EDIT YOUR WORLD!</h3>
   
-    <h5>Hit ENTER to submit</h5>
-  
-    <br />
+    <br>
     <h4>Upload your profile image</h4>
     <input type="file" on:change={handleFileChange} accept="image/*" />
   
@@ -102,11 +124,48 @@
     <input type="text" class="name" bind:value={name} required={submitting} />
   
     <h4>Describe your world</h4>
-    <input type="text" class="description" bind:value={desc} />
+    <textarea class="description" bind:value={desc}></textarea>
   
-    <br /><br />
+    <br><br>
     <button>UPDATE YOUR WORLD</button>
   
     <br />
     <button on:click={handleCancel}>CANCEL EDIT</button>
 </form>
+
+<style>
+    input {
+        text-align: center;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    form {
+        text-align: center;
+       
+    }
+
+    h3 {
+        font-size: x-large;
+        color: rgb(255, 38, 0);
+    }
+
+    h4 {
+        font-size: small;
+        text-transform: uppercase;
+    }
+    
+    .name{
+        width: 400px;
+        height: 30px;
+        border-radius: 20px;        
+
+    }
+    .description {
+        width: 400px;
+        height: 250px;
+        padding: 10px;
+        line-height: 2;
+        border-radius: 20px;        
+    }
+</style>

@@ -7,7 +7,7 @@
      */
     let name;
     /**
-     * @type {string | null | undefined}
+     * @type {string}
      */
     let desc;
     /**
@@ -74,14 +74,12 @@
         profile = reader.result; 
         };
 
-        reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
     }
 </script>
 
 <form on:submit|preventDefault = {handleSubmit}>
     <h3>MAKE YOUR WORLD!</h3>
-
-    <h5>Hit ENTER to submit</h5>
 
     <br><h4>Upload your profile image</h4>
 
@@ -93,8 +91,8 @@
 
     <h4>Describe your world</h4>
 
-    <input type="text" class="description" bind:value={desc}>
-
+    <textarea class="description" bind:value={desc}></textarea>
+    
     <br><br><button>ADD YOUR WORLD</button>
 
     <br><button on:click={handleCancel}>CANCEL NEW WORLD</button>
@@ -124,10 +122,15 @@
     
     .name{
         width: 400px;
+        height: 30px;
+        border-radius: 20px;        
+
     }
     .description {
         width: 400px;
-        min-height: 100px;
-        
+        height: 250px;
+        padding: 10px;
+        line-height: 2;
+        border-radius: 20px;        
     }
 </style>

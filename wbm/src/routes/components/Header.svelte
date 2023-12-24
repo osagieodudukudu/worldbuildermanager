@@ -1,8 +1,8 @@
 <script></script>
 
 <header>
-  <h1>The<br>WorldBuilder<br>Manager</h1>
-  <br><br><p>- Manage your multiverse -</p>
+  <h1 class="title">The<br>WorldBuilder<br>Manager</h1>
+  <br><br><p class="title">- Manage your multiverse -</p>
 </header>
 
 <style>
@@ -19,5 +19,9 @@
     font-size:70px;
     -webkit-text-stroke-width: 2px;
     -webkit-text-stroke-color: rgb(213, 0, 0);
+  }
+
+  .title:hover {
+    cursor: default;
   }
 </style>

@@ -1,15 +1,16 @@
 <script>
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
-    import Footer from "../../components/Footer.svelte";
 
     let SelectedWorld = writable({
         name: '',
         desc: '',
-        profile: '',
-        map: '',
+        profile: null,
+        map: null,
         id: 0,
     });
+
+    let people = [];
 
     onMount(async () => {
         const response = await fetch('http://localhost:3000/api/worlds/selected');
@@ -19,6 +20,8 @@
             SelectedWorld.set(data);
             console.log('Response:', data);
         }
+
+        const response = await fetch('http://localhost:3000/api/people/')
     });
     
     function handleFileChange(event) {
@@ -36,9 +39,6 @@
         reader.readAsDataURL(file);
     }
 
-    function goBack() {
-        history.back();
-    }
 </script>
 
 <div class="body">

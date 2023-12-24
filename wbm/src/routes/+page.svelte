@@ -21,14 +21,13 @@
             //Keep Consistent Order of Worlds
             const inverseworlds = await response.json();
             worlds = inverseworlds.reverse();
-
             console.log('Response:', worlds);
 
             } 
             
             else {
 
-            throw new Error('Failed to fetch worlds');
+            throw new Error('Failed to fetch worlds in frontend');
 
             }
         } 
@@ -183,11 +182,13 @@
                 <container class="world">
                     <container class="worldbutton" title={world.name}>
                         <!-- Name -->
-                        <h2 class="name">{world.name}</h2>
+                        <!-- svelte-ignore a11y-click-events-have-key-events -->
+                        <h2 class="name" on:click={() => handleClick(world.id)} data-sveltekit-preload-data="hover">{world.name}</h2>
                         <!-- Description -->
-                        <p class="desc">{world.desc}</p>
+                        <!-- svelte-ignore a11y-click-events-have-key-events -->
+                        <p class="desc" on:click={() => handleClick(world.id)} data-sveltekit-preload-data="hover">{world.desc}</p>
                         <!-- Button Shape -->
-                        <button on:click={() => handleClick(world.id)}  data-sveltekit-preload-data="tap">
+                        <button on:click={() => handleClick(world.id)}  data-sveltekit-preload-data="hover">
                             <img src="./src/assets/world_icon.png" alt=''>
                         </button>
                         <!-- Profile Picture -->
@@ -202,10 +203,12 @@
             {/if}
         </div>
     </div>
-</body>
-
+    
 <!-- Footer -->
 <Footer />
+</body>
+
+
 
 <style>
     body {
@@ -254,7 +257,9 @@
         position: absolute;
         text-align: center;
         top: 45%;
-        overflow-wrap: break-word;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
         inline-size: 250px;
         text-shadow: 2px 2px rgba(0, 0, 0, 0.305);
     }
@@ -269,6 +274,11 @@
         overflow-wrap: break-word;
         overflow-y: hidden;
         inline-size: 250px;
+    }
+
+    .name:hover,
+    .desc:hover {
+        cursor: pointer;
     }
 
     button {
