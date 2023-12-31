@@ -19,8 +19,7 @@
             
             if (response.ok) {
             //Keep Consistent Order of Worlds
-            const inverseworlds = await response.json();
-            worlds = inverseworlds.reverse();
+            const worlds = await response.json();
             console.log('Response:', worlds);
 
             } 
@@ -41,10 +40,10 @@
 
 
     // @ts-ignore
-    function handleClick(id) {
-    console.log(id);
+    function handleClick(objectid) {
+    console.log(objectid);
         
-    fetch(`http://localhost:3000/api/worlds/select/${id}`, {
+    fetch(`http://localhost:3000/api/worlds/select/${objectid}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -183,19 +182,19 @@
                     <container class="worldbutton" title={world.name}>
                         <!-- Name -->
                         <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <h2 class="name" on:click={() => handleClick(world.id)} data-sveltekit-preload-data="hover">{world.name}</h2>
+                        <h2 class="name" on:click={() => handleClick(world._id)} data-sveltekit-preload-data="hover">{world.name}</h2>
                         <!-- Description -->
                         <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <p class="desc" on:click={() => handleClick(world.id)} data-sveltekit-preload-data="hover">{world.desc}</p>
+                        <p class="desc" on:click={() => handleClick(world._id)} data-sveltekit-preload-data="hover">{world.desc}</p>
                         <!-- Button Shape -->
-                        <button on:click={() => handleClick(world.id)}  data-sveltekit-preload-data="hover">
+                        <button on:click={() => handleClick(world._id)}  data-sveltekit-preload-data="hover">
                             <img src="./src/assets/world_icon.png" alt=''>
                         </button>
                         <!-- Profile Picture -->
                         <img class="profile" src={world.profile ? world.profile : './src/assets/blank_world_profile.png'} alt="" />
                     </container>
 
-                    <button on:dblclick={() => DeleteWorld(world.id)} title="Delete {world.name}" class="delete"> 
+                    <button on:dblclick={() => DeleteWorld(world._id)} title="Delete {world.name}" class="delete"> 
                         <img src="./src/assets/delete.png" alt="" />
                     </button>
                 </container>
