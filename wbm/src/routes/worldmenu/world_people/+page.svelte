@@ -1,51 +1,156 @@
 <script>
     import { onMount } from 'svelte';
-    import { writable } from 'svelte/store';
 
-    let SelectedWorld = writable({
-        name: '',
-        desc: '',
-        profile: null,
-        map: null,
-        id: 0,
-    });
+    import AddPerson from '../../components/EditWorld.svelte';
+    import EditPerson from '../../components/EditPerson.svelte';
+    import Modal from '../../components/Modal.svelte';
+
+        /**
+     * @type any
+     */
+    let selectedworld  = [];
+
+    /**
+     * @type any
+     */
+    let selectedperson = [];
 
     let people = [];
 
     onMount(async () => {
-        const response = await fetch('http://localhost:3000/api/worlds/selected');
+        const response1 = await fetch(`http://localhost:3000/api/people/grab/${selectedworld._id}`);
         
-        if (response.ok) {
-            const data = await response.json();
-            SelectedWorld.set(data);
+        if (response1.ok) {
+            const data = await response1.json();
+            people = data;
+            console.log(`PEOPLE FETCHED!`)
             console.log('Response:', data);
         }
 
-        const response = await fetch('http://localhost:3000/api/people/')
+        const response2 = await fetch(`http://localhost:3000/api/people/selected`);
+        
+        if (response2.ok) {
+            const data = await response2.json();
+            selectedperson = data;
+            console.log(`PEOPLE FETCHED!`)
+            console.log('Response:', data);
+        }
     });
+
+    // @ts-ignore
+    const addPerson = (e) => {
+    
+        console.log(e.detail);
+        const newWorld = e.detail;
+
+        fetch('http://localhost:3000/api/worlds/add', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newWorld),
+        })
+            .then((response) => {
+
+                if (response.ok) {
+                return response.json();
+            } 
+            
+            else {
+                throw new Error('Failed to add person');
+            }
+            
+        })
+            .then((addedWorld) => {
+
+            console.log('Added World:', addedWorld);
+            worlds = [addedWorld, ...worlds];
+
+            showForm = !showForm;
+
+            })
+
+            .catch((error) => {
+            console.error('Error:', error);
+
+            });
+    };
+
+    async function editPeople(updatedPeopleData) {
+        const objectId = selectedperson._id;
+        console.log(objectId);
+        try {
+            const response = await fetch(`http://localhost:3000/api/people/${objectId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedPeopleData),
+            });
+        } 
+        
+        catch (error) {
+            console.error('Failed to fetch:', error);
+        }
+    }
     
     function handleFileChange(event) {
         const file = event.target.files[0];
-
         const reader = new FileReader();
-
+        
         reader.onload = () => {
-            SelectedWorld.update(selectedWorld => ({
-                ...selectedWorld,
-                map: reader.result,
-            }));
+            const image = reader.result;
+        
+            const people = {
+                image
+            };
+            
+            editPeople(people);
         };
-
+    
         reader.readAsDataURL(file);
     }
 
+    function handleFileRemove(){
+        const image = "";
+
+        const people = {
+            image
+        };
+
+        editPeople(people);
+
+    }
+
+    const handleAddPerson = (e) => {
+        addPerson(e.detail);
+        console.log('Add Person clicked');
+        showAdd = !showAdd;
+    }
+
+    const handleEditPerson = (e) => {
+        editPerson(e.detail);
+        console.log('Edit Person clicked');
+        showEdit = !showEdit;
+    }
+
 </script>
+
+<!-- New Person Form -->
+<Modal {showAdd}>
+    <AddPerson on:AddPersontoList={AddWorld} on:Cancel={showAdd}/>
+</Modal>
+
+<!-- New Person Form -->
+<Modal {showEdit}>
+    <AddWorldForm on:AddWorldtoList={AddWorld} on:Cancel={ShowForm}/>
+</Modal>
 
 <div class="body">
     <div>
         <div class="title">
             <button><a href="/worldmenu"><img src="../src/assets/back_arrow.png" alt="" id="arrow"></a></button>
-            <h1 class="worldname">{$SelectedWorld.name}</h1>
+            <h1 class="worldname">{selectedworld.name}</h1>
             <h1 class="page-title">PEOPLE</h1>
         </div>
         <div class="box" id="list-box">
@@ -61,8 +166,8 @@
         <div id="image-box">
             <label for="file-upload" class="custom-file-upload">
                 <input id="file-upload" type="file" accept="image/*" on:change={handleFileChange} />
-                {#if $SelectedWorld.map}
-                    <img src={$SelectedWorld.map} alt='' id="image">
+                {#if selectedperson.image}
+                    <img src={selectedperson.image} alt='' id="image">
                 {:else}
                     <img src="../src/assets/blank image_vert.png" alt='' id="image">
                 {/if}
@@ -75,7 +180,7 @@
         <h1 class="name">NAME</h1>
        
         <div class="text-box" id="description">
-            <h3>NAME:</h3>
+            <h3>NAME:{selectedperson.name}</h3>
             <h3>AGE:</h3>
             <h3>ETHNICITY:</h3>
             <h3>NATIONALITY:</h3>

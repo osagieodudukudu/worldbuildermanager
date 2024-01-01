@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import { writable } from 'svelte/store';
+    
     import EditWorld from '../components/EditWorld.svelte';
     import Modal from '../components/Modal.svelte';
     import Footer from "../components/Footer.svelte";
@@ -8,34 +8,10 @@
     let showForm = false;
 
     /**
-     * @type {string}
+     * @type any
      */
-    let name;
-    /**
-     * @type {string}
-     */
-    let desc;
-    /**
-     * @type {string | null | ArrayBuffer}
-     */
-    let profile;
-    /**
-     * @type {string | null | ArrayBuffer}
-     */
-    let map;
-    /**
-     * @type {number}
-     */
-    let id;
+    let selectedworld = [];
     
-
-    let SelectedWorld = writable({
-        name: '',
-        desc: '',
-        profile: null,
-        map: null,
-        id: 0,
-    });
 
     //Grabs selected world so page can display information
     onMount(async () => {
@@ -43,7 +19,7 @@
         
         if (response.ok) {
             const data = await response.json();
-            SelectedWorld.set(data);
+            selectedworld = data;
             console.log('SELECTED WORLD FETCHED!')
             console.log('Response:', data);
         }
@@ -51,11 +27,10 @@
     
     //Updates World to Backend
     async function editWorld(updatedWorldData) {
-        console.log('Start:', updatedWorldData);
-        const selectedWorldData = $SelectedWorld;
-        console.log('Step 1', selectedWorldData)
+        const objectId = selectedworld._id;
+        console.log(objectId);
         try {
-            const response = await fetch(`http://localhost:3000/api/worlds/${$SelectedWorld.id}`, {
+            const response = await fetch(`http://localhost:3000/api/worlds/${objectId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -65,7 +40,7 @@
 
             if (response.ok) {
             const updatedWorld = await response.json();
-            SelectedWorld.set(updatedWorld);
+            selectedworld = updatedWorld;
             console.log('World updated:', updatedWorld);
             } 
             else {
@@ -85,16 +60,11 @@
     }
 
 
-    function handleRemove(){
+    function handleMapRemove(){
         const map = "";
-        const { name, desc, profile, id } = $SelectedWorld;
 
         const world = {
-            name,
-            desc,
-            profile,
-            map,
-            id,
+            map
         };
 
         editWorld(world);
@@ -108,7 +78,7 @@
         reader.onload = () => {
             const map = reader.result;
 
-            const { name, desc, profile, id } = $SelectedWorld;
+            const { name, desc, profile, id } = selectedworld;
         
             const world = {
                 name,
@@ -146,8 +116,8 @@
             <p class="edit">EDIT WORLD</p>
         </button>
         
-        <div class="profile"><img class="profileimg" src={$SelectedWorld.profile ? $SelectedWorld.profile : '../src/assets/blank_world_profile.png'}></div>
-        <div class="title"><h1 class="title">{$SelectedWorld.name}</h1></div>
+        <div class="profile"><img class="profileimg" src={selectedworld.profile ? selectedworld.profile : '../src/assets/blank_world_profile.png'} alt=''></div>
+        <div class="title"><h1 class="title">{selectedworld.name}</h1></div>
         
         
 </div>
@@ -168,21 +138,21 @@
         <div id="map-box">
             <label for="file-upload" class="custom-file-upload">
                 <input class="mapimg" id="file-upload" type="file" accept="image/*" on:change={handleMapUpload} />
-                {#if $SelectedWorld.map}
-                    <img src={$SelectedWorld.map} alt='' id="map">
+                {#if selectedworld.map}
+                    <img src={selectedworld.map} alt='' id="map">
                 {:else}
                     <img src="./src/assets/blank image.png" alt='' id="map">
                 {/if}
             </label>
         </div>
-        <button class="remove" on:click={() => handleRemove()}>REMOVE MAP</button>
+        <button class="remove" on:click={() => handleMapRemove()}>REMOVE MAP</button>
     </div>
     <div class="description">
         <h2>Description</h2>
         
         <div class="text-box">
-            {#if $SelectedWorld.desc}
-                <h4 class="text_description">{$SelectedWorld.desc}</h4>
+            {#if selectedworld.desc}
+                <h4 class="text_description">{selectedworld.desc}</h4>
                 {:else}
                     <h4>NONE</h4>
                 {/if}
@@ -297,6 +267,7 @@
     }
 
     .profile {
+        
         width: 150px;
         height: 150px;
         overflow: hidden;
@@ -314,6 +285,7 @@
 
     .profileimg {
         height: 150px;
+        align-self: center;
     }
 
     .text_description {

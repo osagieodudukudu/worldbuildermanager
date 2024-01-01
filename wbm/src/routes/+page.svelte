@@ -19,7 +19,8 @@
             
             if (response.ok) {
             //Keep Consistent Order of Worlds
-            const worlds = await response.json();
+            const listworlds = await response.json();
+            worlds = listworlds;
             console.log('Response:', worlds);
 
             } 
@@ -44,11 +45,11 @@
     console.log(objectid);
         
     fetch(`http://localhost:3000/api/worlds/select/${objectid}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ id: id })
+        body: JSON.stringify({ id: objectid })
     })
         .then(response => {
             if (response.status === 204) {
@@ -168,11 +169,7 @@
                         /></button
                     >
                     <!-- Profile Picture -->
-                    <img
-                        class="profile"
-                        src="./src/assets/blank_world_profile.png"
-                        alt=""
-                    />
+                    <div class="profile"><img class="profileimg" src='../src/assets/blank_world_profile.png' alt=''></div>
                 </container>
             </container>
             {#if worlds && worlds.length > 0}
@@ -191,7 +188,7 @@
                             <img src="./src/assets/world_icon.png" alt=''>
                         </button>
                         <!-- Profile Picture -->
-                        <img class="profile" src={world.profile ? world.profile : './src/assets/blank_world_profile.png'} alt="" />
+                        <div class="profile"><img class="profileimg" src={world.profile ? world.profile : './src/assets/blank_world_profile.png'} on:click={() => handleClick(world._id)} data-sveltekit-preload-data="hover" alt="" /></div>
                     </container>
 
                     <button on:dblclick={() => DeleteWorld(world._id)} title="Delete {world.name}" class="delete"> 
@@ -276,7 +273,8 @@
     }
 
     .name:hover,
-    .desc:hover {
+    .desc:hover,
+    .profile:hover{
         cursor: pointer;
     }
 
@@ -295,14 +293,21 @@
     .profile {
         filter: grayscale() opacity(80%);
         position: absolute;
-        top: 109px;
+        top: 108px;
         width: 125px;
-        height: 22%;
+        height: 125px;
+        object-fit: cover;
         overflow: hidden;
+        align-content: center;
         border-radius: 50%;
         transition-duration: 200ms;
         transition-timing-function: ease-in-out;
     }
+    .profileimg {
+        height: 125px;
+        
+    }
+
     .profile:hover {
         filter: none;
         transition-duration: 200ms;

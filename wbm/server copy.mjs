@@ -27,7 +27,6 @@ const worldSchema = new Schema({
   },
   desc: {
     type: String,
-    required: true,
     trim: true
   },
   profile: String, Buffer,
@@ -326,7 +325,7 @@ app.get('/api/:entity', async (req, res) => {
   } 
   
   catch (error) {
-    console.error('Error retrieving ${entity} in backend:', error);
+    console.error(`Error retrieving ${entity} in backend:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
 
   }
@@ -348,7 +347,7 @@ app.post('/api/:entity/add', async (req, res) => {
   }  
   
   catch (error) {
-    console.error('Error creating ${entity}:', error);
+    console.error(`Error creating ${entity}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -363,13 +362,13 @@ app.delete('/api/:entity/:id', async (req, res) => {
   }
 
   try {
-    const objectId = ObjectId(id);
+    const objectId = new mongoose.Types.ObjectId(id);
     await entityModels[entity].deleteOne({ _id: objectId });
     res.sendStatus(204);
   } 
   
   catch (error) {
-    console.error('Error deleting ${entity}:', error);
+    console.error(`Error deleting ${entity}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -384,7 +383,7 @@ app.put('/api/:entity/:id', async (req, res) => {
   }
 
   try {
-    const objectId = new ObjectId(id);
+    const objectId = new mongoose.Types.ObjectId(id);
 
     const updatedEntity = await entityModels[entity].findOneAndUpdate(
       { _id: objectId },
@@ -398,7 +397,7 @@ app.put('/api/:entity/:id', async (req, res) => {
 
     res.json(updatedEntity);
   } catch (error) {
-    console.error('Error updating ${entity}:', error);
+    console.error(`Error updating ${entity}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -412,7 +411,7 @@ app.put('/api/:entity/select/:id', async (req, res) => {
   }
 
   try {
-    const objectId = new ObjectId(id);
+    const objectId = new mongoose.Types.ObjectId(id);
 
     //Unselect any entity
     await entityModels[entity].updateMany( 
@@ -421,11 +420,13 @@ app.put('/api/:entity/select/:id', async (req, res) => {
     );
     
     //Select current entity
-    const updatedEntity = await entityModels[entity].findOneAndUpdate(
-      {_id: objectId },
+    const updatedEntity = await entityModels[entity].findByIdAndUpdate(
+      objectId ,
       { $set: { isSelected: true }},
       { new: true }
     );
+
+    console.log(updatedEntity);
 
     if (!updatedEntity) {
       return res.status(404).json({ error: 'Entity not found' });
@@ -433,10 +434,57 @@ app.put('/api/:entity/select/:id', async (req, res) => {
 
     res.json(updatedEntity);
   } catch (error) {
-    console.error('Error updating ${entity}:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error(`Error updating ${entity}:`, error);
+    res.status(500).json({ error: 'Internal Server Updating Error' });
   }
 });
+
+// Return Select
+app.get('/api/:entity/selected', async (req, res) => {
+  const { entity } = req.params;
+
+  if (!entityModels[entity]){
+    return res.status(404).json({ error: "Entity not found"})
+  }
+  
+  try {
+    const selectedEntity = await entityModels[entity].findOne({ isSelected: true });
+    
+    if (!selectedEntity) {
+      return res.status(404).json({ error: `No selected ${ entity } found` });
+    }
+    
+    res.json(selectedEntity);
+  } catch (error) {
+    console.error(`Error fetching selected ${ entity }:`, error);
+    res.status(500).json({ error: 'Internal Server Retriving Error' });
+  }
+});
+
+//Grab
+app.get('/api/:entity/grab/:id', async (req, res) => {
+  const { entity, id } = req.params;
+
+  if (!entityModels[entity]){
+    return res.status(404).json({ error: "Entity not found"})
+  }
+  
+  try {
+    const objectId = new mongoose.Types.ObjectId(id);
+    
+    const allEntities = await entityModels[entity].find({ world_id: objectId }).exec()
+    
+    if (!allEntities) {
+      return res.status(404).json({ error: `No ${ entity } found` });
+    }
+    
+    res.json(allEntities);
+  } catch (error) {
+    console.error(`Error fetching ${ entity }:`, error);
+    res.status(500).json({ error: 'Internal Server Retriving Error' });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);

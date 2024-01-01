@@ -1,6 +1,5 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
-    import { writable } from 'svelte/store';
 
     let dispatch = createEventDispatcher();
 
@@ -20,25 +19,18 @@
      * @type { string | ArrayBuffer | null }
      */
     let map;
-     /**
-     * @type { number }
-     */
-    let id;
     /**
      * @type { Boolean }
      */
     let submitting;
 
 
+    /**
+     * @type any
+     */
+     let selectedworld = [];
 
-
-    let SelectedWorld = writable({
-        name: '',
-        desc: '',
-        profile: null, 
-        map: null,
-        id: 0,
-    });
+    
 
     onMount(async() => {
 
@@ -46,15 +38,13 @@
 
         if (response.ok) {
             const data = await response.json();
-            SelectedWorld.set(data);
+            selectedworld = data;
             console.log('Response:', data);
         }
         
-        name = $SelectedWorld.name;
-        desc = $SelectedWorld.desc;
-        profile = $SelectedWorld.profile;
-        map = $SelectedWorld.map;
-        id = $SelectedWorld.id;
+        name = selectedworld.name;
+        desc = selectedworld.desc;
+        profile = selectedworld.profile;
     });
 
     function handleSubmit() {
@@ -76,8 +66,6 @@
             name,
             desc,
             profile,
-            map,
-            id,
             };
 
             dispatch('UpdateWorldtoList', world);
@@ -85,8 +73,8 @@
         
         else {
             window.alert('File size exceeds 2MB limit');
-            fileInput.value = $SelectedWorld.profile;
-            profile = $SelectedWorld.profile; 
+            fileInput.value = selectedworld.profile;
+            profile = selectedworld.profile; 
             submitting = false;
         }
     }
