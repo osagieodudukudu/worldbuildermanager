@@ -101,7 +101,7 @@
     
     <br><br><button>ADD YOUR WORLD</button>
 
-    <br><button on:click={handleCancel}>CANCEL NEW WORLD</button>
+    <br><br><button on:click={handleCancel}>CANCEL NEW WORLD</button>
 </form>   
 
 <style>
@@ -138,5 +138,11 @@
         padding: 10px;
         line-height: 2;
         border-radius: 20px;        
+    }
+
+    button {
+        cursor: pointer;
+        border-radius: 20px;
+        padding: 15px;
     }
 </style>

@@ -61,10 +61,10 @@ const peopleSchema = new Schema ({
     trim: true
   },
   age: Number,
-  ethnicity: {
+  ethnicity: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'ethnicitySchema'
-  },
+  }],
   nationality: {
     type: mongoose.Schema.Types.ObjectId,
     ref:'nationalitySchema'
@@ -73,14 +73,14 @@ const peopleSchema = new Schema ({
     type: mongoose.Schema.Types.ObjectId,
     ref:'genderSchema'
   },
-  skills: {
+  skills: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'skillsSchema'
-  },
-  attributes: {
+  }],
+  attributes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'attributesSchema'
-  },
+  }],
   bio: String,
   image: String
 })
@@ -137,29 +137,15 @@ const eventsSchema = new Schema({
     ref: 'placesSchema'
   },
   date: Date,
-  desc: String,
-  attendees: [{
+  notable_people: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'peopleSchema'
   }],
-  bio: String,
+  history: String,
   image: String
 });
 
-//POEPLE SCHEMAS
-const skillsSchema = new Schema({
-  world_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'worldSchema'
-  },
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: true
-  },
-  desc: String,
-});
+//PEOPLE SCHEMAS
 
 const attributesSchema = new Schema({
   world_id: {
@@ -170,9 +156,8 @@ const attributesSchema = new Schema({
     type: String,
     required: true,
     trim: true,
-    unique: true
-  },
-  desc: String
+    unique: true,
+  }
 
 });
 
@@ -185,7 +170,7 @@ const ethnicitySchema = new Schema ({
     type: String,
     required: true,
     trim: true,
-    unique: true
+    unique: true,
   },
   origin: {
     type: mongoose.Schema.Types.ObjectId,
@@ -202,7 +187,7 @@ const nationalitySchema = new Schema({
     type: String,
     required: true,
     trim: true,
-    unique: true
+    unique: true,
   },
   origin: {
     type: mongoose.Schema.Types.ObjectId,
@@ -211,6 +196,15 @@ const nationalitySchema = new Schema({
 });
 
 const genderSchema = new Schema ({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true,
+  }
+});
+
+const skillsSchema = new Schema ({
   world_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'worldSchema'
@@ -219,9 +213,9 @@ const genderSchema = new Schema ({
     type: String,
     required: true,
     trim: true,
-    unique: true
+    unique: true,
   }
-});
+})
 
 //PLACES SCHEMA
 const attractionsSchema = new Schema({
@@ -233,20 +227,21 @@ const attractionsSchema = new Schema({
     type: String,
     required: true,
     trim: true,
-    unique: true
   },
   desc: String,
 });
 
 //ITEM SCHEMA
 const categorySchema = new Schema ({
+  world_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'worldSchema'
+  },
   name: {
     type: String,
     required: true,
     trim: true,
-    unique: true
-  },
-  desc: String,
+  }
 });
 
 //COLLECTIONS
@@ -258,7 +253,7 @@ const events = mongoose.model('events', eventsSchema);
 
 //People Collections
 const skills = mongoose.model('skills', skillsSchema);
-const attributes = mongoose.model('attributes', attractionsSchema);
+const attributes = mongoose.model('attributes', attributesSchema);
 const ethnicity = mongoose.model('ethnicity', ethnicitySchema);
 const nationality = mongoose.model('nationality', nationalitySchema);
 const gender = mongoose.model('gender', genderSchema);
@@ -276,17 +271,19 @@ const entityModels = {
   places: places,
   items: items,
   events: events,
-
   skills: skills,
   attributes: attributes,
   nationality: nationality,
   ethnicity: ethnicity,
   gender: gender,
-
   attractions: attractions,
-
   category: category
 };
+
+//Data Models
+const datatypeModel = [ 
+  "name" 
+];
 
 let URL = "mongodb://127.0.0.1:27017/worldbuilder"
 
@@ -348,7 +345,7 @@ app.post('/api/:entity/add', async (req, res) => {
   
   catch (error) {
     console.error(`Error creating ${entity}:`, error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal Server Adding Error' });
   }
 });
 
@@ -484,7 +481,6 @@ app.get('/api/:entity/grab/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Retriving Error' });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);

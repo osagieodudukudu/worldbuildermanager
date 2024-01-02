@@ -154,8 +154,8 @@
 </Modal>
 
 <!-- World Gallery -->
-<body>
-    <div class="wrapper" class:hidden={showForm}>
+<body class:hidden={showForm}>
+    <div class="wrapper" >
         <div class="carousel">
             <container class="world">
                 <container class="worldbutton" title="Add New World">

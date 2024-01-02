@@ -77,15 +77,9 @@
         
         reader.onload = () => {
             const map = reader.result;
-
-            const { name, desc, profile, id } = selectedworld;
         
             const world = {
-                name,
-                desc,
-                profile,
                 map,
-                id,
             };
             
             editWorld(world);
