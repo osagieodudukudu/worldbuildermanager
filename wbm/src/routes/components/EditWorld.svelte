@@ -2,25 +2,21 @@
     import { onMount, createEventDispatcher } from 'svelte';
 
     let dispatch = createEventDispatcher();
-
+    
     /**
-     * @type { string }
+     * @type {string}
      */
     let name;
     /**
-     * @type { string }
+     * @type {string}
      */
     let desc;
     /**
-     * @type { string | ArrayBuffer | null }
+     * @type {string | null | ArrayBuffer}
      */
     let profile;
     /**
-     * @type { string | ArrayBuffer | null }
-     */
-    let map;
-    /**
-     * @type { Boolean }
+     * @type {Boolean}
      */
     let submitting;
 

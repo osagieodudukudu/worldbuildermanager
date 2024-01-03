@@ -26,6 +26,7 @@
     "mongodb": "^5.5.0",
     "mongoose": "^7.2.1",
     "multer": "^1.4.5-lts.1",
+    "svelte-dnd-action": "^0.9.38",
     "svelte-router-spa": "^6.0.3",
     "svelte-routing": "^1.8.8",
     "svelte-spa-router": "^3.3.0"

@@ -227,7 +227,7 @@
         
         
         <br><br><br><br><br><h4>Age</h4>
-        <input type="number" class="age" bind:value={age} required={submitting}>
+        <input type="number" class="age" bind:value={age} required={submitting} min="0">
         
         <br><br><br><br><br><br><button>ADD YOUR CHARACTER</button>
         <br><br><button on:click={handleCancel}>CANCEL NEW PERSON</button>
@@ -304,7 +304,7 @@
         padding: 15px;
     }
 
-    input {
+    input, select {
         text-align: center;
         word-wrap: break-word;
         overflow-wrap: break-word;

@@ -31,22 +31,6 @@ const worldSchema = new Schema({
   },
   profile: String, Buffer,
   map: String, Buffer,
-  people: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'peopleSchema'
-  }],
-  places: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'placesSchema'
-  }],
-  items: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'itemsSchema'
-  }],
-  events: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'eventsSchema'
-  }]
 });
 
 const peopleSchema = new Schema ({
@@ -338,10 +322,16 @@ app.post('/api/:entity/add', async (req, res) => {
   }
   try {
     const newEntity = req.body;
-    console.log(newEntity);
+    const {name, world_id} = newEntity
+
+    const existingEnitiy = await entityModels[entity].findOne({ name: name, world_id:world_id}).exec();
+
+    if (existingEnitiy){
+    return res.json(existingEnitiy);}
+    
     const createdEntity = await entityModels[entity].create(newEntity);
     res.json(createdEntity);
-  }  
+  }
   
   catch (error) {
     console.error(`Error creating ${entity}:`, error);
@@ -380,6 +370,10 @@ app.put('/api/:entity/:id', async (req, res) => {
   }
 
   try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+    
     const objectId = new mongoose.Types.ObjectId(id);
 
     const updatedEntity = await entityModels[entity].findOneAndUpdate(
@@ -419,7 +413,7 @@ app.put('/api/:entity/select/:id', async (req, res) => {
     //Select current entity
     const updatedEntity = await entityModels[entity].findByIdAndUpdate(
       objectId ,
-      { $set: { isSelected: true }},
+      { $set: { isSelected: true}},
       { new: true }
     );
 
@@ -467,16 +461,29 @@ app.get('/api/:entity/grab/:id', async (req, res) => {
   }
   
   try {
-    const objectId = new mongoose.Types.ObjectId(id);
-    
-    const allEntities = await entityModels[entity].find({ world_id: objectId }).exec()
-    
-    if (!allEntities) {
-      return res.status(404).json({ error: `No ${ entity } found` });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
     }
     
-    res.json(allEntities);
-  } catch (error) {
+    const objectId = new mongoose.Types.ObjectId(id);
+    
+    const allEntities = await entityModels[entity].find({ world_id: objectId }).exec();
+
+    const allEntities2 = await entityModels[entity].find({
+    _id: objectId }).exec();
+
+    if (allEntities.length > 0) {
+      res.json(allEntities);
+    }
+    else if(allEntities2.length > 0){
+      res.json(allEntities2);
+    }
+    else {
+      return res.status(404).json({ error: `No ${ entity } found` });
+    }
+  } 
+  
+  catch (error) {
     console.error(`Error fetching ${ entity }:`, error);
     res.status(500).json({ error: 'Internal Server Retriving Error' });
   }

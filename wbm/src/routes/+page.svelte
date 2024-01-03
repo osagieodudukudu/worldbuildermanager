@@ -4,7 +4,7 @@
     import Header from "./components/Header.svelte";
     import Footer from "./components/Footer.svelte";
     import Modal from "./components/Modal.svelte";
-    import AddWorldForm from "./components/AddWorldForm.svelte";
+    import AddWorld from "./components/AddWorld.svelte";
 
     let showForm = false;
     
@@ -81,7 +81,7 @@
     };
 
     // @ts-ignore
-    const AddWorld = (e) => {
+    const addWorld = (e) => {
     
         console.log(e.detail);
         const newWorld = e.detail;
@@ -150,7 +150,7 @@
 
 <!-- New World Form -->
 <Modal {showForm}>
-    <AddWorldForm on:AddWorldtoList={AddWorld} on:Cancel={ShowForm}/>
+    <AddWorld on:AddWorldtoList={addWorld} on:Cancel={ShowForm}/>
 </Modal>
 
 <!-- World Gallery -->
@@ -174,6 +174,7 @@
             </container>
             {#if worlds && worlds.length > 0}
 
+            
             {#each worlds as world}
                 <container class="world">
                     <container class="worldbutton" title={world.name}>

@@ -1,111 +1,361 @@
 <script>
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
+
 
     let dispatch = createEventDispatcher();
-    /**
+    
+
+    let allEthnicities = [];
+    let allNationailities = [];
+    let allGenders = [];
+    let allSkills = [];
+    let allAttributes = [];
+
+    let selectedworld = [];
+    let selectedperson = [];
+
+        /**
      * @type {string}
      */
     let name;
     /**
      * @type {string}
      */
-    let desc;
+    let bio;
     /**
      * @type {string | null | ArrayBuffer}
      */
-    let profile;
-    /**
-     * @type {string | null | ArrayBuffer}
-     */
-    let map;
+    let image;
     /**
      * @type {Boolean}
      */
     let isSelected;
     /**
+     * @type {Number}
+     */
+    let age;
+    /**
+     * @type {String}
+     */
+    let ethnicity; 
+    /**
+     * @type {String}
+     */
+    let nationality;
+    /**
+     * @type {String}
+     */
+    let gender; 
+    /**
+     * @type {String}
+     */
+    let skills;
+    /**
+     * @type {String}
+     */
+    let attributes;
+    /**
      * @type {Boolean}
      */
     let submitting;
 
-    function handleSubmit() {
-        submitting = true; 
+    onMount(async () => {
+        const response = await fetch('http://localhost:3000/api/worlds/selected');
+            
+            if (response.ok) {
+                const data = await response.json();
+                selectedworld = data;
+                console.log('SELECTED WORLD FETCHED!')
+                console.log('Response:', data);
+            }
 
-        if (desc === undefined) {
-            desc = '';
+        const response1 = await fetch('http://localhost:3000/api/people/selected');
+
+            if (response1.ok) {
+                const data = await response1.json();
+                selectedperson = data;
+                console.log('Response:', data);
+            }
+        
+        const response2 = await fetch(`http://localhost:3000/api/ethnicity/grab/${selectedworld._id}`);
+            
+            if (response2.ok) {
+                const data = await response2.json();
+                allEthnicities = data;
+                console.log(`ETHNICITIES FETCHED!`)
+                console.log('Response:', data);
+            }
+
+        const response3 = await fetch(`http://localhost:3000/api/nationality/grab/${selectedworld._id}`);
+            
+            if (response3.ok) {
+                const data = await response3.json();
+                allNationailities = data;
+                console.log(`NATIONALITIES FETCHED!`)
+                console.log('Response:', data);
+            }
+
+        const response4 = await fetch(`http://localhost:3000/api/gender/`);
+            
+            if (response4.ok) {
+                const data = await response4.json();
+                allGenders = data;
+                console.log(`GENDERS FETCHED!`)
+                console.log('Response:', data);
+            }
+
+        const response5 = await fetch(`http://localhost:3000/api/skills/grab/${selectedworld._id}`);
+            
+            if (response5.ok) {
+                const data = await response5.json();
+                allSkills = data;
+                console.log(`SKILLS FETCHED!`)
+                console.log('Response:', data);
+            }  
+        
+        const response6 = await fetch(`http://localhost:3000/api/attributes/grab/${selectedworld._id}`);
+            
+            if (response6.ok) {
+                const data = await response6.json();
+                allAttributes = data;
+                console.log(`ATTRIBUTES FETCHED!`)
+                console.log('Response:', data);
+            } 
+
+        let entities    =   [selectedperson.nationality, selectedperson.ethnicity, selectedperson.gender, selectedperson.skills, selectedperson.attributes];
+        let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes"];
+            
+        for (let i = 0; i < entities.length; i++) {
+
+        const response2 = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
+
+                if(response2.ok) {
+                    const responseData = await response2.json();
+                    console.log('EntityGrab:',responseData, `${entities[i]}`);
+
+                    switch(entitiesVar[i]) {
+                        case "nationality": 
+                            nationality = responseData[0].name;
+                            console.log (nationality);
+                            break;
+                        case "ethnicity":
+                            ethnicity = responseData[0].name;
+                            console.log (ethnicity);
+                            break;
+                        case "gender":
+                            gender = responseData[0].name;
+                            console.log (gender);
+                            break;
+                        case "skills":
+                            skills = responseData[0].name;
+                            console.log (skills);
+                            break;
+                        case "attributes":
+                            attributes = responseData[0].name;
+                            console.log (attributes);
+                            break;
+                    }
+                }
         }
-        if (profile === undefined) {
-            profile = '';
-        }
-        map = "";
+            
+    })
+
+    async function handleSubmit() {
+        submitting = true; 
+        
+        if (!bio) { bio = ''; }
+        if (!image) { image = ''; }
 
         isSelected = false;
 
-        if (name) {
-            const fileInput = document.querySelector('input[type="file"]');
-            const file = fileInput.files[0];
+        let entitiesName = [nationality, ethnicity, gender, skills, attributes];
+        let entitiesID = [
+            selectedperson.nationality, 
+            selectedperson.ethnicity, 
+            selectedperson.gender, 
+            selectedperson.skills, 
+            selectedperson.attributes
+        ];
+        let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes"];
 
-            if (!file || (file && file.size <= 2 * 1024 * 1024 )) {
-                const world = {
-                name,
-                desc,
-                profile,
-                map,
-                isSelected,
-                };
+        for (let i = 0; i < entitiesVar.length; i++) {
+            let newEntity = {
+                world_id: selectedworld._id,
+                name: entitiesName[i],
+            };
 
-                dispatch('AddWorldtoList', world);
+            console.log(newEntity);
+
+            
+            //EDIT ENTITY
+            try {
+                const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/${entitiesID[i]}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newEntity),
+                });
+
+                if (response.ok) {
+                    const responseData = await response.json();
+
+                    switch(entitiesVar[i]) {
+                        case "nationality":
+                            nationality = responseData._id;
+                            break;
+                        case "ethnicity":
+                            ethnicity = responseData._id;
+                            break;
+                        case "gender":
+                            gender = responseData._id;
+                            break;
+                        case "skills":
+                            skills = responseData._id;
+                            break;
+                        case "attributes":
+                            attributes = responseData._id;
+                            break;
+
+                    }
+                }
+                else {
+                    throw new Error(`Failed to edit ${entitiesVar[i]}`);
+                }
+
             } 
             
-            else {
-                window.alert('File size exceeds 2MB limit');
-                fileInput.value = '';
-                profile = ''; 
-                submitting = false;
+            catch (error) {
+                console.error('Failed to fetch:', error);
             }
+        }
+    
+        if (name && nationality && ethnicity && gender && skills && attributes) { 
+        
+                const person = {
+                world_id: selectedworld._id,
+                name,
+                age,
+                ethnicity,
+                nationality,
+                gender,
+                skills,
+                attributes,
+                bio,
+                image,
+                isSelected
+                };
+
+                console.log('New Person in Queue', person);
+
+                dispatch('AddPersontoList', person);
+            
         }
     }
 
     function handleCancel() {
 
-    dispatch('Cancel');
+        dispatch('Cancel');
 
     }
 
-    function handleFileChange(event) {
-        const file = event.target.files[0];
-
-        const reader = new FileReader();
-
-        reader.onload = () => {
-        profile = reader.result; 
-        };
-
-    reader.readAsDataURL(file);
-    }
 </script>
 
 <form on:submit|preventDefault = {handleSubmit}>
-    <h3>MAKE YOUR WORLD!</h3>
+        
+    <h3>ADD YOUR CHARACTER!</h3> 
 
-    <br><h4>Upload your profile image</h4>
+    <div class="container">
 
-    <input type="file" on:change={handleFileChange} accept="image/*" />
+    <div>
 
-    <h4>Name your world</h4>
+        <h4>Name your character</h4>
+        <input type="text" class="name" bind:value={selectedperson.name} required={submitting}>
+
+
+        <h4>Give your character a biography</h4>
+        <textarea class="description" bind:value={selectedperson.bio}></textarea>
+        
+        
+        <br><br><br><br><br><h4>Age</h4>
+        <input type="number" class="age" bind:value={selectedperson.age} required={submitting} min="0">
+        
+        <br><br><br><br><br><br><button>EDIT YOUR CHARACTER</button>
+        <br><br><button on:click={handleCancel}>CANCEL EDIT PERSON</button>
+
+    </div>
     
-    <input type="text" class="name" bind:value={name} required={submitting}>
+    <div>
 
-    <h4>Describe your world</h4>
+        <h4>Nationality</h4>
+        <input type="text" class="nationality" bind:value={nationality}>
+        <h4 class="note"> or Pick from a Selection</h4>
+        <select class="nationality" bind:value={nationality}>
+            <option value=""></option>
+            {#each allNationailities as nation}
+            <option value={nation.name}>{nation.name}</option>
+            {/each}
+        </select>
 
-    <textarea class="description" bind:value={desc}></textarea>
+        <br><br>
+        <h4>Ethnicity</h4>
+        <input type="text" class="ethnicity" bind:value={ethnicity}>
+        <h4 class="note"> or Pick from a Selection</h4>
+        <select class="ethnicity" bind:value={ethnicity}>
+            <option value=""></option>
+            {#each allEthnicities as ethnic}
+            <option value={ethnic.name}>{ethnic.name}</option>
+            {/each}
+        </select>
+
+        <br><br>
+        <h4>Gender</h4>
+        <input type="text" class="gender" bind:value={gender}>
+        <h4 class="note"> or Pick from a Selection</h4>
+        <select class="gender" bind:value={gender}>
+            <option value=""></option>
+            {#each allGenders as gender}
+            <option value={gender.name}>{gender.name}</option>
+            {/each}
+        </select>
+        
+        <br><br>
+        <h4>Skills</h4>
+        <input type="text" class="skills" bind:value={skills}>
+        <h4 class="note"> or Pick from a Selection</h4>
+        <select class="skills" bind:value={skills}>
+            <option value=""></option>
+            {#each allSkills as skills}
+            <option value={skills.name}>{skills.name}</option>
+            {/each}
+        </select>
+        
+        <br><br>
+        <h4>Attributes</h4>
+        <input type="text" class="attributes" bind:value={attributes}>
+        <h4 class="note"> or Pick from a Selection</h4>
+        <select class="attributes" bind:value={attributes}>
+            <option value=""></option>
+            {#each allAttributes as attrib}
+            <option value={attrib.name}>{attrib.name}</option>
+            {/each}
+        </select>
+
+    </div>
+
+    </div>
     
-    <br><br><button>ADD YOUR WORLD</button>
-
-    <br><button on:click={handleCancel}>CANCEL NEW WORLD</button>
+    
 </form>   
 
 <style>
-    input {
+    button {
+        cursor: pointer;
+        border-radius: 20px;
+        padding: 15px;
+    }
+
+    input, select {
         text-align: center;
         word-wrap: break-word;
         overflow-wrap: break-word;
@@ -126,12 +376,19 @@
         text-transform: uppercase;
     }
     
-    .name{
+    .name, .ethnicity, .nationality, .gender, .skills, .attributes{
         width: 400px;
         height: 30px;
         border-radius: 20px;        
 
     }
+
+    .age {
+        width: 50px;
+        height: 40px;
+        border-radius: 20px; 
+    }
+
     .description {
         width: 400px;
         height: 250px;
@@ -139,4 +396,16 @@
         line-height: 2;
         border-radius: 20px;        
     }
+
+    .note {
+        font-size: 60%;
+        color:rgb(201, 201, 201)
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    
 </style>
