@@ -133,22 +133,21 @@
         
     };
 
-    const handleConfirmSwitch = (object, confirm) => {
-        ShowForm();
-        switch(confirm){
-            case "delete":
-                deleteCharacter(object);
-                break;
-            case "add":
-                addCharacter(object);
-                break;
-            case "edit":
-                editCharacter(object.details);
-                break;
-            default:
-                console.log("Invalid action");
+    function setConfirm(answer) {
+        if (answer=="Y" || answer=="N"){
+            confirm = answer;
+            showForm = !showForm;
+        } else {
+            console.log('Invailid Input', confirm);
+        };
+    };
+
+    async function waitForConfirm() {
+        while(showForm){
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
-    }
+        console.log("Form Closed", confirm)
+    };
     
     async function handleSelect(object){
         
@@ -270,52 +269,66 @@
     };
     
     const deleteCharacter = async (object) => {
-        try {
-            // Select the next character
-            const selectResponse = await fetch(`http://localhost:3000/api/characters/select/next/${object._id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ id: object._id })
-            });
-            
-            if (!selectResponse.ok) {
-                throw new Error(`Failed to select next character with ID ${object._id}`);
-            } else {
-                console.log('Next Character selected successfully');
-                // Delete the selected character
-                const deleteResponse = await fetch(`http://localhost:3000/api/characters/${object._id}`, {
-                    method: 'DELETE'
+        ShowForm();
+
+        await waitForConfirm();
+
+        if ( confirm=="Y" ){
+
+            try {
+                // Select the next character
+                const selectResponse = await fetch(`http://localhost:3000/api/characters/select/next/${object._id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: object._id })
                 });
                 
-                if (!deleteResponse.ok) {
-                    throw new Error(`Failed to delete character with ID ${object._id}`);
+                if (!selectResponse.ok) {
+                    throw new Error(`Failed to select next character with ID ${object._id}`);
                 } else {
-                    console.log('Character deleted successfully');
-                    // Perform cleanup
-                    const cleanupResponse = await fetch('http://localhost:3000/api/cleanup', {
+                    console.log('Next Character selected successfully');
+                    // Delete the selected character
+                    const deleteResponse = await fetch(`http://localhost:3000/api/characters/${object._id}`, {
                         method: 'DELETE'
                     });
                     
-                    if (!cleanupResponse.ok) {
-                        throw new Error('Failed to perform cleanup');
+                    if (!deleteResponse.ok) {
+                        throw new Error(`Failed to delete character with ID ${object._id}`);
+                    } else {
+                        console.log('Character deleted successfully');
+                        // Perform cleanup
+                        const cleanupResponse = await fetch('http://localhost:3000/api/cleanup', {
+                            method: 'DELETE'
+                        });
+                        
+                        if (!cleanupResponse.ok) {
+                            throw new Error('Failed to perform cleanup');
+                        }
+                        console.log('Cleanup completed successfully');
                     }
-                    console.log('Cleanup completed successfully');
                 }
-            }
-            
-            // Fetch updated characters data
-            const updatedCharactersResponse = await fetch('http://localhost:3000/api/characters');
-            const updatedCharacters = await updatedCharactersResponse.json();
-            characters = updatedCharacters.reverse();
-            console.log(updatedCharacters);
                 
-        }
-        catch (error) {
-            console.error('Error:', error.message);
-        }
-        
+                // Fetch updated characters data
+                const updatedCharactersResponse = await fetch('http://localhost:3000/api/characters');
+                const updatedCharacters = await updatedCharactersResponse.json();
+                characters = updatedCharacters.reverse();
+                console.log(updatedCharacters);
+                    
+            }
+            catch (error) {
+                console.error('Error:', error.message);
+            }
+            console.log("Before reset", confirm);
+            confirm = "";
+            console.log("After reset", confirm);
+        } else {
+            console.log("Delete not confirmed")
+            console.log("Before reset", confirm);
+            confirm = "";
+            console.log("After reset", confirm);
+        };
     };
 
     async function editCharacter(updatedCharactersData) {
@@ -334,13 +347,13 @@
         catch (error) {
             console.error('Failed to fetch:', error);
         }
-    }
+    };
     
     const handleEditCharacter = (e) => {
         editCharacter(e.detail);
         console.log('Edit Character clicked');
         showEdit = !showEdit;
-    }
+    };
 
     function handleFileChange(event) {
         const file = event.target.files[0];
@@ -357,7 +370,7 @@
         };
     
         reader.readAsDataURL(file);
-    }
+    };
 
     function handleFileRemove(){
         const image = "";
@@ -368,7 +381,7 @@
 
         editCharacter(characters);
 
-    }
+    };
 
     async function refreshData(object) {
         console.log('New Character Selction')
@@ -424,11 +437,11 @@
         else {
             console.error("Couldn't finish. Failed to Select Character");  
         }
-    }
+    };
 </script>
 
 <Modal {showForm}>
-    <Confirm on:Yes={} on:No={ShowForm}/>
+    <Confirm on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
 </Modal>
 
 <!-- Add Character Form -->
