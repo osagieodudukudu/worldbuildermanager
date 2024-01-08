@@ -1,5 +1,5 @@
 <footer>
-    <div class="credit">made by OSAGIE MARTIN ODUDUKUDU<br><br>- MAY 2023 -</div>
+    <div class="credit">made by OSAGIE MARTIN ODUDUKUDU<br><br>- JANUARY 2024 -</div>
 
 </footer>
 

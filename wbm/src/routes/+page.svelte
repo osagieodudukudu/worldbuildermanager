@@ -149,13 +149,15 @@
 <Header />
 
 <!-- New World Form -->
-<Modal {showForm}>
-    <AddWorld on:AddWorldtoList={addWorld} on:Cancel={ShowForm}/>
-</Modal>
+
 
 <!-- World Gallery -->
 <body class:hidden={showForm}>
     <div class="wrapper" >
+        <Modal {showForm}>
+            <AddWorld on:AddWorldtoList={addWorld} on:Cancel={ShowForm}/>
+        </Modal>
+
         <div class="carousel">
             <container class="world">
                 <container class="worldbutton" title="Add New World">
@@ -189,6 +191,7 @@
                             <img src="./src/assets/world_icon.png" alt=''>
                         </button>
                         <!-- Profile Picture -->
+                        <!-- svelte-ignore a11y-click-events-have-key-events -->
                         <div class="profile"><img class="profileimg" src={world.profile ? world.profile : './src/assets/blank_world_profile.png'} on:click={() => handleClick(world._id)} data-sveltekit-preload-data="hover" alt="" /></div>
                     </container>
 
@@ -200,9 +203,9 @@
             {/if}
         </div>
     </div>
+    <!-- Footer -->
+    <Footer />
     
-<!-- Footer -->
-<Footer />
 </body>
 
 
@@ -214,8 +217,8 @@
         justify-items: center;
     }
     .wrapper {
-        max-width: 1280px;
-        width: 100%;
+        max-width: 1920px;
+        margin: 0 auto;
     }
 
     .wrapper{

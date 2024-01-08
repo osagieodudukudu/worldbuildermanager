@@ -4,16 +4,27 @@
 
     let dispatch = createEventDispatcher();
     
+    let selectedworld = [];
 
     let allEthnicities = [];
     let allNationailities = [];
     let allGenders = [];
     let allSkills = [];
     let allAttributes = [];
+    let allSpecies = [];
 
-    let selectedworld = [];
+    let selectname;
+    let selectbio;
+    let selectage;
+    let selectnationality;
+    let selectethnicity;
+    let selectgender;
+    let selectskills;
+    let selectattributes;
+    let selectspecies;
 
-        /**
+
+    /**
      * @type {string}
      */
     let name;
@@ -53,6 +64,10 @@
      * @type {String}
      */
     let attributes;
+     /**
+     * @type {String}
+     */
+    let species;
     /**
      * @type {Boolean}
      */
@@ -67,64 +82,34 @@
                 console.log('SELECTED WORLD FETCHED!')
                 console.log('Response:', data);
             }
-        
-        const response2 = await fetch(`http://localhost:3000/api/ethnicity/grab/${selectedworld._id}`);
-            
-            if (response2.ok) {
-                const data = await response2.json();
-                allEthnicities = data;
-                console.log(`ETHNICITIES FETCHED!`)
-                console.log('Response:', data);
-            }
 
-        const response3 = await fetch(`http://localhost:3000/api/nationality/grab/${selectedworld._id}`);
-            
-            if (response3.ok) {
-                const data = await response3.json();
-                allNationailities = data;
-                console.log(`NATIONALITIES FETCHED!`)
-                console.log('Response:', data);
-            }
+        let entities    =   [ selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies ];
+        let entitiesVar =   [ "nationality", "ethnicity", "gender", "skills", "attributes", "species" ];
+        let allEntities =   [ allNationailities, allEthnicities, allGenders, allSkills, allAttributes, allSpecies ];
 
-        const response4 = await fetch(`http://localhost:3000/api/gender/`);
-            
-            if (response4.ok) {
-                const data = await response4.json();
-                allGenders = data;
-                console.log(`GENDERS FETCHED!`)
-                console.log('Response:', data);
-            }
+        for (let i =0; i<entities.length; i++) {
+            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${selectedworld._id}`);
 
-        const response5 = await fetch(`http://localhost:3000/api/skills/grab/${selectedworld._id}`);
-            
-            if (response5.ok) {
-                const data = await response5.json();
-                allSkills = data;
-                console.log(`SKILLS FETCHED!`)
+            if (response.ok) {
+                
+                const data = await response.json();
+                allEntities[i] = data;
+                console.log(`${entitiesVar[i]} FETCHED!`)
                 console.log('Response:', data);
-            }  
-        
-        const response6 = await fetch(`http://localhost:3000/api/attributes/grab/${selectedworld._id}`);
-            
-            if (response6.ok) {
-                const data = await response6.json();
-                allAttributes = data;
-                console.log(`ATTRIBUTES FETCHED!`)
-                console.log('Response:', data);
-            }  
-            
+
+            }
+        }    
     })
 
     async function handleSubmit() {
         submitting = true; 
         
-        if (!bio) { bio = ''; }
-        if (!image) { image = ''; }
-
+        if (!selectbio) { selectbio = ''; }
+        image = ''; 
         isSelected = false;
 
-        let entities    =   [nationality, ethnicity, gender, skills, attributes];
-        let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes"];
+        let entities    =   [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
+        let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
 
         for (let i = 0; i < entities.length; i++) {
             
@@ -133,9 +118,7 @@
                 name: entities[i],
             };
 
-            console.log(newEntity);
-
-            
+           
             //ADD ENTITY
             try {
                 const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
@@ -165,11 +148,13 @@
                         case "attributes":
                             attributes = responseData._id;
                             break;
-
+                        case "species":
+                            species = responseData._id;
+                            break;
                     }
                 }
                 else {
-                    throw new Error(`Failed to addd ${entitiesVar[i]}`);
+                    throw new Error(`Failed to add ${entitiesVar[i]}`);
                 }
 
             } 
@@ -179,27 +164,29 @@
             }
         }
     
-        if (name && nationality && ethnicity && gender && skills && attributes) { 
+        if (selectname && nationality && ethnicity && gender && skills && attributes && species) { 
         
-                const person = {
-                world_id: selectedworld._id,
-                name,
-                age,
-                ethnicity,
-                nationality,
-                gender,
-                skills,
-                attributes,
-                bio,
-                image,
-                isSelected
+                const character = {
+                    world_id: selectedworld._id,
+                    name: selectname,
+                    age: selectage,
+                    ethnicity,
+                    nationality,
+                    gender,
+                    skills,
+                    attributes,
+                    species,
+                    bio: selectbio,
+                    image,
+                    isSelected
                 };
 
-                console.log('New Person in Queue', person);
+                
+            console.log('New Character in Queue', character);
 
-                dispatch('AddPersontoList', person);
-            
+            dispatch('AddCharactertoList', character);
         }
+        
     }
 
     function handleCancel() {
@@ -219,27 +206,22 @@
     <div>
 
         <h4>Name your character</h4>
-        <input type="text" class="name" bind:value={name} required={submitting}>
+        <input type="text" class="name" bind:value={selectname} required={submitting}>
 
 
         <h4>Give your character a biography</h4>
-        <textarea class="description" bind:value={bio}></textarea>
+        <textarea class="description" bind:value={selectbio}></textarea>
         
         
-        <br><br><br><br><br><h4>Age</h4>
-        <input type="number" class="age" bind:value={age} required={submitting} min="0">
-        
-        <br><br><br><br><br><br><button>ADD YOUR CHARACTER</button>
-        <br><br><button on:click={handleCancel}>CANCEL NEW PERSON</button>
+        <br><br>
+        <h4>Age</h4>
+        <input type="number" class="age" bind:value={selectage} required={submitting} min="0">
 
-    </div>
-    
-    <div>
-
+        <br><br>
         <h4>Nationality</h4>
-        <input type="text" class="nationality" bind:value={nationality}>
+        <input type="text" class="nationality" bind:value={selectnationality}>
         <h4 class="note"> or Pick from a Selection</h4>
-        <select class="nationality" bind:value={nationality}>
+        <select class="nationality" bind:value={selectnationality}>
             <option value=""></option>
             {#each allNationailities as nation}
             <option value={nation.name}>{nation.name}</option>
@@ -248,9 +230,9 @@
 
         <br><br>
         <h4>Ethnicity</h4>
-        <input type="text" class="ethnicity" bind:value={ethnicity}>
+        <input type="text" class="ethnicity" bind:value={selectethnicity}>
         <h4 class="note"> or Pick from a Selection</h4>
-        <select class="ethnicity" bind:value={ethnicity}>
+        <select class="ethnicity" bind:value={selectethnicity}>
             <option value=""></option>
             {#each allEthnicities as ethnic}
             <option value={ethnic.name}>{ethnic.name}</option>
@@ -259,20 +241,31 @@
 
         <br><br>
         <h4>Gender</h4>
-        <input type="text" class="gender" bind:value={gender}>
+        <input type="text" class="gender" bind:value={selectgender}>
         <h4 class="note"> or Pick from a Selection</h4>
-        <select class="gender" bind:value={gender}>
+        <select class="gender" bind:value={selectgender}>
             <option value=""></option>
             {#each allGenders as gender}
             <option value={gender.name}>{gender.name}</option>
             {/each}
         </select>
+
+        <br><br>
+        <h4>Species</h4>
+        <input type="text" class="species" bind:value={selectspecies}>
+        <h4 class="note"> or Pick from a Selection</h4>
+        <select class="species" bind:value={selectspecies}>
+            <option value=""></option>
+            {#each allSpecies as species}
+            <option value={species.name}>{species.name}</option>
+            {/each}
+        </select>
         
         <br><br>
         <h4>Skills</h4>
-        <input type="text" class="skills" bind:value={skills}>
+        <input type="text" class="skills" bind:value={selectskills}>
         <h4 class="note"> or Pick from a Selection</h4>
-        <select class="skills" bind:value={skills}>
+        <select class="skills" bind:value={selectskills}>
             <option value=""></option>
             {#each allSkills as skills}
             <option value={skills.name}>{skills.name}</option>
@@ -281,15 +274,18 @@
         
         <br><br>
         <h4>Attributes</h4>
-        <input type="text" class="attributes" bind:value={attributes}>
+        <input type="text" class="attributes" bind:value={selectattributes}>
         <h4 class="note"> or Pick from a Selection</h4>
-        <select class="attributes" bind:value={attributes}>
+        <select class="attributes" bind:value={selectattributes}>
             <option value=""></option>
             {#each allAttributes as attrib}
             <option value={attrib.name}>{attrib.name}</option>
             {/each}
         </select>
 
+        <br><br><br><br>
+        <button>ADD YOUR CHARACTER</button>
+        <br><br><button on:click={handleCancel}>CANCEL NEW CHARACTER</button>
     </div>
 
     </div>
@@ -325,7 +321,7 @@
         text-transform: uppercase;
     }
     
-    .name, .ethnicity, .nationality, .gender, .skills, .attributes{
+    .name, .ethnicity, .nationality, .gender, .skills, .attributes, .species{
         width: 400px;
         height: 30px;
         border-radius: 20px;        
@@ -333,7 +329,7 @@
     }
 
     .age {
-        width: 50px;
+        width: 100px;
         height: 40px;
         border-radius: 20px; 
     }
@@ -350,11 +346,5 @@
         font-size: 60%;
         color:rgb(201, 201, 201)
     }
-
-    .container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
-
     
 </style>

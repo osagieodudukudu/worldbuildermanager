@@ -6,11 +6,10 @@
 
 </script>
 
-{#if showForm || showAdd || showEdit}
+{#if showForm || showAdd || showEdit }
         <div class="modal">
             <slot></slot>    
-        </div>   
-    
+        </div>
 {/if}
 
 <main>

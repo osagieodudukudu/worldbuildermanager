@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
-const { Schema, model, connect, ObjectId } = mongoose;
+const { Schema, connect} = mongoose;
 const app = express();
 const PORT = 3000;
 
@@ -17,7 +17,7 @@ app.use((req, res, next) => {
   next();
 });
 
-//SCHEMAS
+//BASE SCHEMAS
 const worldSchema = new Schema({
   isSelected: Boolean,
   name: {
@@ -33,7 +33,7 @@ const worldSchema = new Schema({
   map: String, Buffer,
 });
 
-const peopleSchema = new Schema ({
+const charactersSchema = new Schema ({
   isSelected: Boolean,
   world_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -65,8 +65,12 @@ const peopleSchema = new Schema ({
     type: mongoose.Schema.Types.ObjectId,
     ref:'attributesSchema'
   }],
+  species: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref:'speciesSchema'
+  },
   bio: String,
-  image: String
+  image: String,
 })
 
 const placesSchema = new Schema({
@@ -81,9 +85,9 @@ const placesSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref:'attractionsSchema'
   },
-  notable_people: [{
+  notable_characters: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'peopleSchema'
+    ref: 'charactersSchema'
   }],
   desc: String,
   image: String
@@ -98,7 +102,7 @@ const itemsSchema = new Schema({
   name: String,
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'peopleSchema'
+    ref: 'charactersSchema'
   },
   category: {
     type: mongoose.Schema.Types.ObjectId,
@@ -121,15 +125,15 @@ const eventsSchema = new Schema({
     ref: 'placesSchema'
   },
   date: Date,
-  notable_people: [{
+  notable_characters: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'peopleSchema'
+    ref: 'charactersSchema'
   }],
   history: String,
   image: String
 });
 
-//PEOPLE SCHEMAS
+//CHARACTER SCHEMAS
 
 const attributesSchema = new Schema({
   world_id: {
@@ -180,6 +184,10 @@ const nationalitySchema = new Schema({
 });
 
 const genderSchema = new Schema ({
+  world_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'worldSchema'
+  },
   name: {
     type: String,
     required: true,
@@ -189,6 +197,19 @@ const genderSchema = new Schema ({
 });
 
 const skillsSchema = new Schema ({
+  world_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'worldSchema'
+  },
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true,
+  }
+})
+
+const speciesSchema = new Schema ({
   world_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'worldSchema'
@@ -230,17 +251,18 @@ const categorySchema = new Schema ({
 
 //COLLECTIONS
 const worlds = mongoose.model('world', worldSchema);
-const people = mongoose.model('people', peopleSchema);
+const characters = mongoose.model('characters', charactersSchema);
 const places = mongoose.model('places', placesSchema);
 const items = mongoose.model('items', itemsSchema);
 const events = mongoose.model('events', eventsSchema);
 
-//People Collections
+//Character Collections
 const skills = mongoose.model('skills', skillsSchema);
 const attributes = mongoose.model('attributes', attributesSchema);
 const ethnicity = mongoose.model('ethnicity', ethnicitySchema);
 const nationality = mongoose.model('nationality', nationalitySchema);
 const gender = mongoose.model('gender', genderSchema);
+const species = mongoose.model('species', speciesSchema);
 
 //Place Collections
 const attractions = mongoose.model('attractions', attractionsSchema);
@@ -251,7 +273,7 @@ const category = mongoose.model('category', categorySchema);
 //Entity Models
 const entityModels = {
   worlds: worlds,
-  people: people,
+  characters: characters,
   places: places,
   items: items,
   events: events,
@@ -260,14 +282,10 @@ const entityModels = {
   nationality: nationality,
   ethnicity: ethnicity,
   gender: gender,
+  species: species,
   attractions: attractions,
   category: category
 };
-
-//Data Models
-const datatypeModel = [ 
-  "name" 
-];
 
 let URL = "mongodb://127.0.0.1:27017/worldbuilder"
 
@@ -287,6 +305,53 @@ connect(URL, {
 
   });
 
+//Clean-Up
+app.delete('/api/cleanup', async (req,res) => {
+  let isReferenced;
+  
+  try {
+  const subentityModels = [nationality, ethnicity, gender, skills, attributes, species];
+
+    for (let i = 0; i < subentityModels.length; i++) {
+      const allSubEntities = await subentityModels[i].find().exec();
+
+      for (const subentity of allSubEntities) {
+        const subentityId  = subentity._id.toString();
+        
+        switch(subentityModels[i]) {
+          case nationality:
+            isReferenced = await characters.findOne({ nationality : subentityId }).exec();
+            break;
+          case ethnicity:
+            isReferenced = await characters.findOne({ ethnicity : subentityId }).exec();
+            break;
+          case gender:
+            isReferenced = await characters.findOne({ gender : subentityId }).exec();
+            break;
+          case skills:
+            isReferenced = await characters.findOne({ skills : subentityId }).exec();
+            break;
+          case attributes:
+            isReferenced = await characters.findOne({ attributes : subentityId }).exec();
+            break;
+          case species:
+            isReferenced = await characters.findOne({ species : subentityId }).exec();
+        }
+
+      if(!isReferenced) {
+        await subentityModels[i].findByIdAndDelete( subentityId );
+        console.log('Unused sub entity removed');
+      }
+    }
+
+  }
+  res.sendStatus(204);
+
+  } catch (error) {
+    console.error(`Error deleting unsused subentiies`, error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // Return 
 app.get('/api/:entity', async (req, res) => {
@@ -452,6 +517,54 @@ app.get('/api/:entity/selected', async (req, res) => {
   }
 });
 
+// Select Next
+app.put('/api/:entity/select/next/:id', async (req, res) => {
+  const { entity, id } = req.params;
+
+  if (!entityModels[entity]){
+    return res.status(404).json({ error: "Entity not found"})
+  }
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+    
+    const objectId = new mongoose.Types.ObjectId(id);
+
+    const currentEntity = await entityModels[entity].findById(objectId);
+
+    if (!currentEntity) {
+      return res.status(404).json({ error: 'Entity not found' });
+    }
+
+    const nextEntity = await entityModels[entity].findOne({ _id: { $gt: objectId } }).sort({ _id: 1 }).limit(1);
+
+    if (nextEntity) {
+      await entityModels[entity].updateOne({ _id: objectId }, { $set: { isSelected: false } });
+      await entityModels[entity].updateOne({ _id: nextEntity._id }, { $set: { isSelected: true } });
+
+      res.json(nextEntity);
+    }
+    else {
+      const nextEntity = await entityModels[entity].findOne({ _id: { $lt: objectId } }).sort({ _id: -1 }).limit(1);
+      
+      if(nextEntity) {
+        await entityModels[entity].updateOne({ _id: objectId }, { $set: { isSelected: false } });
+        await entityModels[entity].updateOne({ _id: nextEntity._id }, { $set: { isSelected: true } });
+        
+        res.json(nextEntity);
+      }
+      else {
+        res.json({ message: `No next ${entity} found` });
+      }
+    } 
+  } catch (error) {
+    console.error(`Error selecting next ${entity}:`, error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 //Grab
 app.get('/api/:entity/grab/:id', async (req, res) => {
   const { entity, id } = req.params;
@@ -469,8 +582,7 @@ app.get('/api/:entity/grab/:id', async (req, res) => {
     
     const allEntities = await entityModels[entity].find({ world_id: objectId }).exec();
 
-    const allEntities2 = await entityModels[entity].find({
-    _id: objectId }).exec();
+    const allEntities2 = await entityModels[entity].find({ _id: objectId }).exec();
 
     if (allEntities.length > 0) {
       res.json(allEntities);
@@ -488,6 +600,8 @@ app.get('/api/:entity/grab/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Retriving Error' });
   }
 });
+
+
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);

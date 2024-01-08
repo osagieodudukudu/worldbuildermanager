@@ -103,63 +103,64 @@
 
 
 <div class:hidden={showForm}>
-<div class="name">
-        <button title="Go Back to Home Page"><a href="/"><img src="src/assets/back_arrow.png" alt="" id="arrow"></a></button>
-        <button class="b" on:click={ShowForm}>
-            <img class="edit-button" src="src/assets/edit.png" alt="">
-            <p class="edit">EDIT WORLD</p>
-        </button>
-        
-        <div class="profile"><img class="profileimg" src={selectedworld.profile ? selectedworld.profile : '../src/assets/blank_world_profile.png'} alt=''></div>
-        <div class="title"><h1 class="title">{selectedworld.name}</h1></div>
-        
-        
-</div>
-
-<div class="worldoptions" > 
-    <button class="a" data-sveltekit-preload-data="tap"><a href="/worldmenu/world_people"><h2>People</h2></button>
-    <button class="a" data-sveltekit-preload-data="tap"><a href="/worldmenu/world_places"><h2>Places</h2></button>
-    <button class="a" data-sveltekit-preload-data="tap"><a href="/worldmenu/world_items"><h2>Items</h2></button>
-    <button class="a" data-sveltekit-preload-data="tap"><a href="/worldmenu/world_events"><h2>Events</h2></button>
-
-</div>
-
-<div class="container">
-    <div class="map">
-        <h2>MAP</h2>
-        <h5>MAKE YOUR OWN MAP AND CLICK THE IMAGE BELOW TO UPLOAD</h5>
-        <h5>RECOMMENDED SIZE (1920 x 1080)</h5>
-        <div id="map-box">
-            <label for="file-upload" class="custom-file-upload">
-                <input class="mapimg" id="file-upload" type="file" accept="image/*" on:change={handleMapUpload} />
-                {#if selectedworld.map}
-                    <img src={selectedworld.map} alt='' id="map">
-                {:else}
-                    <img src="./src/assets/blank image.png" alt='' id="map">
-                {/if}
-            </label>
+    <div class="wrapper">
+        <div class="name">
+            <button title="Go Back to All Worlds"><a href="/"><img src="src/assets/back_arrow.png" alt="" id="arrow"></a></button>
+            <button class="b" on:click={ShowForm}>
+                <img title="Edit World" class="edit-button" src="src/assets/edit.png" alt="">
+                <p class="edit">EDIT WORLD</p>
+            </button>
+            <div class="profile"><img class="profileimg" src={selectedworld.profile ? selectedworld.profile : '../src/assets/blank_world_profile.png'} alt=''></div>
+            <div class="title"><h1 class="title">{selectedworld.name}</h1></div>
         </div>
-        <button class="remove" on:click={() => handleMapRemove()}>REMOVE MAP</button>
-    </div>
-    <div class="description">
-        <h2>Description</h2>
-        
-        <div class="text-box">
-            {#if selectedworld.desc}
-                <h4 class="text_description">{selectedworld.desc}</h4>
-                {:else}
+
+        <div class="worldoptions" > 
+            <button title="Show Characters" class="a" data-sveltekit-preload-data="tap"><a href="/worldmenu/world_characters"><h2 class="a">CHARACTERS</h2></button>
+            <button title="Show Places" class="a" data-sveltekit-preload-data="tap"><a href="/worldmenu/world_places"><h2 class="a">Places</h2></button>
+            <button title="Show Items" class="a" data-sveltekit-preload-data="tap"><a href="/worldmenu/world_items"><h2 class="a">Items</h2></button>
+            <button title="Show Events" class="a" data-sveltekit-preload-data="tap"><a href="/worldmenu/world_events"><h2 class="a">Events</h2></button>
+        </div>
+
+        <div class="container">
+            <div class="map">
+                <h2>MAP</h2>
+                <h5>MAKE YOUR OWN MAP AND CLICK THE IMAGE BELOW TO UPLOAD</h5>
+                <h5>RECOMMENDED SIZE (1920 x 1080)</h5>
+                <div id="map-box">
+                    <label for="file-upload" class="custom-file-upload">
+                        <input  class="mapimg" id="file-upload" type="file" accept="image/*" on:change={handleMapUpload} />
+                        {#if selectedworld.map}
+                        <img title="Change Map" src={selectedworld.map} alt='' id="map">
+                        {:else}
+                        <img title="Upload Map" src="./src/assets/blank image.png" alt='' id="map">
+                        {/if}
+                    </label>
+                </div>
+                <button title="Remove Map" class="remove" on:click={() => handleMapRemove()}>REMOVE MAP</button>
+            </div>
+
+            <div class="description">
+                <h2>Description</h2>
+                <div class="text-box">
+                    {#if selectedworld.desc}
+                    <h4 class="text_description">{selectedworld.desc}</h4>
+                    {:else}
                     <h4>NONE</h4>
-                {/if}
+                    {/if}
+                </div>
+            </div>
             
         </div>
-        
+        <Footer />
     </div>
-
 </div>
-</div>
-<Footer />
 
 <style>
+    .wrapper {
+        width: 1920px;
+        margin: 0 auto;
+    }
+
     #map-box{
         display: flex;
         justify-content: center;
@@ -348,6 +349,7 @@
         text-transform: uppercase;
         font-size: 30px;
         text-align: center;
+        text-decoration: none;
     }
 
     button:active {
@@ -355,14 +357,13 @@
     }
 
     .a {
-        color:rgb(213, 0, 0);
         transition-duration: 200ms;
         transition-timing-function: ease-in-out;
-    }
-
-    .a:hover {
         text-decoration: none;
-        filter: none;
+    }
+    
+    .a:hover {
+        color:rgb(213, 0, 0);
         transition-duration: 200ms;
         transition-timing-function: ease-in-out;
     }
