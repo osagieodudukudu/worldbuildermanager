@@ -53,12 +53,9 @@
         }
     }
 
-
-
     function ShowForm(){
         showForm = !showForm;
     }
-
 
     function handleMapRemove(){
         const map = "";

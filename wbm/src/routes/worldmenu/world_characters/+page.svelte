@@ -4,9 +4,10 @@
 
     import AddCharacter from '../../components/AddCharacter.svelte';
     import EditCharacter from '../../components/EditCharacter.svelte';
-  
-    import Modal from '../../components/Modal.svelte';
     import Confirm from '../../components/Confirm.svelte';
+    import Modal from '../../components/Modal.svelte';
+    import Form from '../../components/Form.svelte';
+    
 
     
     /**
@@ -26,6 +27,7 @@
     let showEdit = false;
     let showForm = false;
     let confirm = "";
+    let message = "";
 
     /**
      * @type {any}
@@ -133,21 +135,21 @@
         
     };
 
-    function setConfirm(answer) {
-        if (answer=="Y" || answer=="N"){
-            confirm = answer;
-            showForm = !showForm;
-        } else {
-            console.log('Invailid Input', confirm);
-        };
-    };
+    // function setConfirm(answer) {
+    //     if (answer=="Y" || answer=="N"){
+    //         confirm = answer;
+    //         showForm = !showForm;
+    //     } else {
+    //         console.log('Invailid Input', confirm);
+    //     };
+    // };
 
-    async function waitForConfirm() {
-        while(showForm){
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        console.log("Form Closed", confirm)
-    };
+    // async function waitForConfirm() {
+    //     while(showForm){
+    //         await new Promise(resolve => setTimeout(resolve, 100));
+    //     }
+    //     console.log("Form Closed", confirm)
+    // };
     
     async function handleSelect(object){
         
@@ -269,11 +271,12 @@
     };
     
     const deleteCharacter = async (object) => {
-        ShowForm();
+        message = "YOU WANT TO DELETE YOUR CHARACTER?"
+        // ShowForm();
 
-        await waitForConfirm();
+        // await waitForConfirm();
 
-        if ( confirm=="Y" ){
+        // if ( confirm=="Y" ){
 
             try {
                 // Select the next character
@@ -311,38 +314,46 @@
                 }
                 
                 // Fetch updated characters data
-                const updatedCharactersResponse = await fetch('http://localhost:3000/api/characters');
-                const updatedCharacters = await updatedCharactersResponse.json();
-                characters = updatedCharacters.reverse();
-                console.log(updatedCharacters);
+                // const updatedCharactersResponse = await fetch('http://localhost:3000/api/characters');
+                // const updatedCharacters = await updatedCharactersResponse.json();
+                // characters = updatedCharacters.reverse();
+                // console.log(updatedCharacters);
                     
             }
             catch (error) {
                 console.error('Error:', error.message);
             }
-            console.log("Before reset", confirm);
-            confirm = "";
-            console.log("After reset", confirm);
-        } else {
-            console.log("Delete not confirmed")
-            console.log("Before reset", confirm);
-            confirm = "";
-            console.log("After reset", confirm);
-        };
+            // console.log("Before reset", confirm);
+            // confirm = "";
+            // console.log("After reset", confirm);
+        // } else {
+        //     console.log("Delete not confirmed")
+        //     console.log("Before reset", confirm);
+        //     confirm = "";
+        //     console.log("After reset", confirm);
+        // };
     };
 
     async function editCharacter(updatedCharactersData) {
         const objectId = selectedcharacter._id;
         console.log(objectId);
         try {
-            await fetch(`http://localhost:3000/api/characters/${objectId}`, {
+            const response = await fetch(`http://localhost:3000/api/characters/${objectId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(updatedCharactersData),
-        });
-    } 
+            });
+            if (response.ok) {
+            const updatedCharacter = await response.json();
+            selectedcharacter = updatedCharacter;
+            console.log('Character updated:', updatedCharacter);
+            } 
+            else {
+            console.error('Error editing character:', response.status);
+            }
+        } 
     
         catch (error) {
             console.error('Failed to fetch:', error);
@@ -362,11 +373,11 @@
         reader.onload = () => {
             const image = reader.result;
             
-            const characters = {
+            const character = {
                 image
             };
             
-            editCharacter(characters);
+            editCharacter(character);
         };
     
         reader.readAsDataURL(file);
@@ -440,9 +451,9 @@
     };
 </script>
 
-<Modal {showForm}>
-    <Confirm on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
-</Modal>
+<Form {showForm}>
+    <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
+</Form>
 
 <!-- Add Character Form -->
 <Modal {showAdd}>
@@ -470,7 +481,7 @@
             <!-- List -->
             <div class="text-box" id="list">
                 {#each characters as character}
-                    <div class="person">
+                    <div class="character">
                         <button on:click = {ShowEdit} title="Edit {character.name}" class="editbutton"><h1 class="edit"><img src="../src/assets/edit.png" alt="" class="edit"/></button>
                             
                         <button on:click = {refreshData(character)} title="Select {character.name}" class="listbutton" class:selected = { character._id == selectedID }><h3 class="listname">{character.name}</h3></button>
@@ -612,7 +623,7 @@
 </body>
 
 <style>
-    .person {
+    .character {
         display: grid;
         grid-template-columns: 1fr 10fr 1fr;
         justify-content: center;
@@ -641,7 +652,7 @@
     .listbutton {
         border-radius: 20px;
         margin-bottom: 10px;
-        width: 100%;
+        max-width: 400px;
         
     }
     .listbutton:hover {
@@ -732,7 +743,10 @@
         font-size: large;
         transition-duration: 200ms;
         transition-timing-function: ease-in-out;
-        text-align: left;
+        text-align: center;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         
     }
     .worldname {
@@ -770,6 +784,7 @@
     .text-box{
         background-color: white;
         height: 670px;
+        max-width: 550px;
         padding: 20px;
         padding-top: 10px;
         border-radius: 20px;

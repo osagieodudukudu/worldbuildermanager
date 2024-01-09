@@ -5,7 +5,9 @@
     let dispatch = createEventDispatcher();
     
     let selectedworld = [];
+    let selectedcharacter = [];
 
+   
     let allEthnicities = [];
     let allNationailities = [];
     let allGenders = [];
@@ -24,14 +26,7 @@
     let selectspecies;
 
 
-        /**
-     * @type {string}
-     */
-    let name;
-    /**
-     * @type {string}
-     */
-    let bio;
+     
     /**
      * @type {string | null | ArrayBuffer}
      */
@@ -40,10 +35,6 @@
      * @type {Boolean}
      */
     let isSelected;
-    /**
-     * @type {Number}
-     */
-    let age;
     /**
      * @type {String}
      */
@@ -74,27 +65,85 @@
     let submitting;
 
     onMount(async () => {
-        const response = await fetch('http://localhost:3000/api/worlds/selected');
+
+        const response1 = await fetch('http://localhost:3000/api/worlds/selected');
             
-            if (response.ok) {
-                const data = await response.json();
-                selectedworld = data;
-                console.log('SELECTED WORLD FETCHED!')
-                console.log('Response:', data);
+        if (response1.ok) {
+            const data = await response1.json();
+            selectedworld = data;
+            console.log('SELECTED WORLD FETCHED!')
+            console.log('Response:', data);
+        }
+
+        
+        const response = await fetch('http://localhost:3000/api/characters/selected');
+        
+        if (response.ok) {
+            const data = await response.json();
+            selectedcharacter = data;
+            console.log('Response:', data);
+        }
+        
+        selectname = selectedcharacter.name;
+        selectbio = selectedcharacter.bio;
+        selectage = selectedcharacter.age;
+        
+        let entities    =   [selectedcharacter.nationality, selectedcharacter.ethnicity, selectedcharacter.gender, selectedcharacter.skills, selectedcharacter.attributes, selectedcharacter.species];
+        let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+        let allEntities =   [ allNationailities, allEthnicities, allGenders, allSkills, allAttributes, allSpecies ];
+        
+        for (let i = 0; i < entities.length; i++) {
+            
+            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
+            
+            if(response.ok) {
+                const responseData = await response.json();
+                console.log(responseData);
+                allEntities[i] = responseData;
+                console.log(`${entitiesVar[i]} FETCHED!`);
+
+                console.log('EntityGrab:', responseData, `${entities[i]}`);
+                
+                switch(entitiesVar[i]) {
+                    case "nationality": 
+                        selectnationality = responseData[0].name;
+                        console.log (nationality);
+                        break;
+                    case "ethnicity":
+                        selectethnicity = responseData[0].name;
+                        console.log (ethnicity);
+                        break;
+                    case "gender":
+                        selectgender = responseData[0].name;
+                        console.log (gender);
+                        break;
+                    case "skills":  
+                        selectskills = responseData[0].name;
+                        console.log (skills);
+                        break;
+                    case "attributes":
+                        selectattributes = responseData[0].name;
+                        console.log (attributes);
+                        break;
+                    case "species":
+                        selectspecies = responseData[0].name;
+                        console.log (species);
+                        break;                        
+                }
             }
 
-        let entities    =   [ selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies ];
-        let entitiesVar =   [ "nationality", "ethnicity", "gender", "skills", "attributes", "species" ];
-        let allEntities =   [ allNationailities, allEthnicities, allGenders, allSkills, allAttributes, allSpecies ];
+        }
 
-        for (let i =0; i<entities.length; i++) {
-            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${selectedworld._id}`);
 
-            if (response.ok) {
+        for (let i = 0; i < allEntities.length; i++) {
+            const response2 = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${selectedworld._id}`);
+
+            if (response2.ok) {
                 
-                const data = await response.json();
+                const data = await response2.json();
+                console.log(data);
                 allEntities[i] = data;
-                console.log(`${entitiesVar[i]} FETCHED!`)
+                console.log(`${entitiesVar[i]} FETCHED!`);
                 console.log('Response:', data);
 
             }
@@ -286,7 +335,7 @@
 
         <br><br><br><br>
         <button>EDIT YOUR CHARACTER</button>
-        <br><br><button on:click={handleCancel}>CANCEL NEW CHARACTER</button>
+        <br><br><button on:click={handleCancel}>CANCEL EDIT CHARACTER</button>
     </div>
 
     </div>

@@ -25,14 +25,6 @@
 
 
     /**
-     * @type {string}
-     */
-    let name;
-    /**
-     * @type {string}
-     */
-    let bio;
-    /**
      * @type {string | null | ArrayBuffer}
      */
     let image;
@@ -40,10 +32,6 @@
      * @type {Boolean}
      */
     let isSelected;
-    /**
-     * @type {Number}
-     */
-    let age;
     /**
      * @type {String}
      */
@@ -83,23 +71,27 @@
                 console.log('Response:', data);
             }
 
-        let entities    =   [ selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies ];
         let entitiesVar =   [ "nationality", "ethnicity", "gender", "skills", "attributes", "species" ];
+
         let allEntities =   [ allNationailities, allEthnicities, allGenders, allSkills, allAttributes, allSpecies ];
 
-        for (let i =0; i<entities.length; i++) {
-            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${selectedworld._id}`);
+        for (let i = 0; i < entitiesVar.length; i++) {
+            try{
+                const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${selectedworld._id}`);
 
-            if (response.ok) {
-                
-                const data = await response.json();
-                allEntities[i] = data;
-                console.log(`${entitiesVar[i]} FETCHED!`)
-                console.log('Response:', data);
+                if (response.ok) {
+                    
+                    const data = await response.json();
+                    allEntities[i]= data;
+                    console.log(`${entitiesVar[i]} FETCHED!`);
+                    console.log('Response:', data, `${allEntities[i]}`);
 
+                }
+            } catch {
+                console.error(`Error fetching ${entitiesVar[i]}:`, error);
             }
         }    
-    })
+    });
 
     async function handleSubmit() {
         submitting = true; 

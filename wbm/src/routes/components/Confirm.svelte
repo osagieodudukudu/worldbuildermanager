@@ -3,7 +3,7 @@
 
 
   let dispatch = createEventDispatcher();
-
+  export let message;
 
   function handleSubmit(action) {
     dispatch(action);
@@ -13,7 +13,8 @@
 
 <form>
       
-  <h3>ARE YOU SURE?</h3> 
+  <h3>ARE YOU SURE</h3> 
+  <h4>{message}</h4>
   <div class="container">
 
     <button on:click={() => handleSubmit('Yes')}>YES</button>
