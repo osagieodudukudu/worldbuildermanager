@@ -105,7 +105,7 @@
             }
 
             console.log('SELECTED CHARACTER FETCHED!')
-            console.log('Response:', data);
+            console.log('Response:', selectedcharacter);
         }
         else {
             selectedcharacter = selectedcharacter;
@@ -334,21 +334,22 @@
         };
     };
 
-    async function editCharacter(updatedCharactersData) {
+    async function editCharacter(updatedCharacterData) {
         const objectId = selectedcharacter._id;
-        console.log(objectId);
+        console.log(typeof [objectId]);
         try {
             const response = await fetch(`http://localhost:3000/api/characters/${objectId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(updatedCharactersData),
+            body: JSON.stringify(updatedCharacterData),
             });
+            
             if (response.ok) {
-            const updatedCharacter = await response.json();
-            selectedcharacter = updatedCharacter;
-            console.log('Character updated:', updatedCharacter);
+                const updatedCharacter = await response.json();
+                selectedcharacter = updatedCharacter;
+                console.log('Character updated:', updatedCharacter);
             } 
             else {
             console.error('Error editing character:', response.status);
@@ -361,7 +362,7 @@
     };
     
     const handleEditCharacter = (e) => {
-        editCharacter(e);
+        editCharacter(e.detail);
         console.log('Edit Character clicked');
         showEdit = !showEdit;
     };
@@ -462,7 +463,7 @@
 
 <!-- Edit Character Form -->
 <Modal {showEdit}>
-    <EditCharacter on:UpdateWorldtoList={handleEditCharacter} on:Cancel={ShowEdit}/>
+    <EditCharacter on:UpdateCharacter={handleEditCharacter} on:Cancel={ShowEdit}/>
 </Modal>
     
 <body style="display: {showAdd || showEdit ? 'none' : 'grid'}">
@@ -664,6 +665,7 @@
     .display {
         color: rgb(0, 0, 0);
         line-height: 2;
+        overflow-wrap: break-word;
     }
     .selected, .selected:hover{
         border: 2px solid rgb(255, 0, 0);
@@ -705,6 +707,7 @@
     }
     #description {
         padding: 40px;
+        max-width: 540px;
         
     }
     .title{
@@ -736,6 +739,10 @@
         -webkit-text-stroke-width: 1px;
         -webkit-text-stroke-color: rgb(191, 0, 0);
         margin-bottom: 30px;
+        max-width: 540px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
         
     }
     .listname { 
@@ -784,7 +791,7 @@
     .text-box{
         background-color: white;
         height: 670px;
-        max-width: 550px;
+        max-width: 540px;
         padding: 20px;
         padding-top: 10px;
         border-radius: 20px;

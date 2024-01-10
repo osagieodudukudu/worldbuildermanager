@@ -126,8 +126,7 @@
     async function handleSubmit() {
         submitting = true; 
         
-        if (!selectbio) { selectbio = ''; }
-        image = ''; 
+        if (!selectbio) { selectbio = ''; };
         isSelected = false;
 
         let entities    =   [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];

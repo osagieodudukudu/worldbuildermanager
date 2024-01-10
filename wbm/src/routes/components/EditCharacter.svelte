@@ -26,11 +26,6 @@
     let selectspecies;
 
 
-     
-    /**
-     * @type {string | null | ArrayBuffer}
-     */
-    let image;
     /**
      * @type {Boolean}
      */
@@ -90,7 +85,6 @@
         
         let entities    =   [selectedcharacter.nationality, selectedcharacter.ethnicity, selectedcharacter.gender, selectedcharacter.skills, selectedcharacter.attributes, selectedcharacter.species];
         let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
-        let allEntities =   [ allNationailities, allEthnicities, allGenders, allSkills, allAttributes, allSpecies ];
         
         for (let i = 0; i < entities.length; i++) {
             
@@ -106,27 +100,30 @@
                 switch(entitiesVar[i]) {
                     case "nationality": 
                         selectnationality = responseData[0].name;
-                        console.log (nationality);
+                
+                        console.log (selectnationality);
                         break;
                     case "ethnicity":
                         selectethnicity = responseData[0].name;
-                        console.log (ethnicity);
+        
+                        console.log (selectethnicity);
                         break;
                     case "gender":
                         selectgender = responseData[0].name;
-                        console.log (gender);
+                        console.log (selectgender);
                         break;
                     case "skills":  
                         selectskills = responseData[0].name;
-                        console.log (skills);
+                        console.log (selectskills);
                         break;
                     case "attributes":
                         selectattributes = responseData[0].name;
-                        console.log (attributes);
+            
+                        console.log (selectattributes);
                         break;
                     case "species":
                         selectspecies = responseData[0].name;
-                        console.log (species);
+                        console.log (selectspecies);
                         break;                        
                 }
             }
@@ -185,13 +182,12 @@
             }
           
             
-    })
+    });
 
     async function handleSubmit() {
         submitting = true; 
         
-        if (!selectbio) { selectbio = ''; }
-        image = ''; 
+        if (!selectbio) { selectbio = ''; }; 
         isSelected = false;
 
         let entities    =   [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
@@ -199,7 +195,7 @@
 
         for (let i = 0; i < entities.length; i++) {
             
-            let newEntity = {
+            let Entity = {
                 world_id: selectedworld._id,
                 name: entities[i],
             };
@@ -212,7 +208,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(newEntity),
+                    body: JSON.stringify(Entity),
                 });
 
                 if (response.ok) {
@@ -221,31 +217,35 @@
                     switch(entitiesVar[i]) {
                         case "nationality":
                             nationality = responseData._id;
+                            console.log(nationality);
                             break;
                         case "ethnicity":
                             ethnicity = responseData._id;
+                            console.log(ethnicity);
                             break;
                         case "gender":
                             gender = responseData._id;
+                            console.log(gender);
                             break;
                         case "skills":
                             skills = responseData._id;
+                            console.log(skills);
                             break;
                         case "attributes":
                             attributes = responseData._id;
+                            console.log(attributes);
                             break;
                         case "species":
                             species = responseData._id;
+                            console.log(species);
                             break;
                     }
                 }
                 else {
-                    throw new Error(`Failed to edit ${entitiesVar[i]}`);
+                    throw new Error(`Failed to add ${entitiesVar[i]}`);
                 }
 
-            } 
-            
-            catch (error) {
+            } catch (error) {
                 console.error('Failed to fetch:', error);
             }
         }
@@ -263,23 +263,22 @@
                     attributes,
                     species,
                     bio: selectbio,
-                    image,
                     isSelected
                 };
 
                 
             console.log('Character in Queue', character);
 
-            dispatch('EditCharactertoList', character);
+            dispatch('UpdateCharacter', character);
         }
         
-    }
+    };
 
     function handleCancel() {
 
     dispatch('Cancel');
 
-    }
+    };
 
 </script>
 
