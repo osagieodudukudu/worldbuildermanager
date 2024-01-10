@@ -128,28 +128,28 @@
         
     };
     
-    const ShowEdit = () => {
-        
+    const ShowEdit = (e) => {
+        handleSelect(e);
         showEdit = !showEdit;
         console.log(showEdit, `Edit made it through`)
         
     };
 
-    // function setConfirm(answer) {
-    //     if (answer=="Y" || answer=="N"){
-    //         confirm = answer;
-    //         showForm = !showForm;
-    //     } else {
-    //         console.log('Invailid Input', confirm);
-    //     };
-    // };
+    function setConfirm(answer) {
+        if (answer=="Y" || answer=="N"){
+            confirm = answer;
+            showForm = !showForm;
+        } else {
+            console.log('Invailid Input', confirm);
+        };
+    };
 
-    // async function waitForConfirm() {
-    //     while(showForm){
-    //         await new Promise(resolve => setTimeout(resolve, 100));
-    //     }
-    //     console.log("Form Closed", confirm)
-    // };
+    async function waitForConfirm() {
+        while(showForm){
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        console.log("Form Closed", confirm)
+    };
     
     async function handleSelect(object){
         
@@ -272,11 +272,11 @@
     
     const deleteCharacter = async (object) => {
         message = "YOU WANT TO DELETE YOUR CHARACTER?"
-        // ShowForm();
+        ShowForm();
 
-        // await waitForConfirm();
+        await waitForConfirm();
 
-        // if ( confirm=="Y" ){
+        if ( confirm=="Y" ){
 
             try {
                 // Select the next character
@@ -313,25 +313,25 @@
                     }
                 }
                 
-                // Fetch updated characters data
-                // const updatedCharactersResponse = await fetch('http://localhost:3000/api/characters');
-                // const updatedCharacters = await updatedCharactersResponse.json();
-                // characters = updatedCharacters.reverse();
-                // console.log(updatedCharacters);
+                //Fetch updated characters data
+                const updatedCharactersResponse = await fetch('http://localhost:3000/api/characters');
+                const updatedCharacters = await updatedCharactersResponse.json();
+                characters = updatedCharacters.reverse();
+                console.log(updatedCharacters);
                     
             }
             catch (error) {
                 console.error('Error:', error.message);
             }
-            // console.log("Before reset", confirm);
-            // confirm = "";
-            // console.log("After reset", confirm);
-        // } else {
-        //     console.log("Delete not confirmed")
-        //     console.log("Before reset", confirm);
-        //     confirm = "";
-        //     console.log("After reset", confirm);
-        // };
+            console.log("Before reset", confirm);
+            confirm = "";
+            console.log("After reset", confirm);
+        } else {
+            console.log("Delete not confirmed")
+            console.log("Before reset", confirm);
+            confirm = "";
+            console.log("After reset", confirm);
+        };
     };
 
     async function editCharacter(updatedCharactersData) {
@@ -361,7 +361,7 @@
     };
     
     const handleEditCharacter = (e) => {
-        editCharacter(e.detail);
+        editCharacter(e);
         console.log('Edit Character clicked');
         showEdit = !showEdit;
     };
@@ -482,7 +482,7 @@
             <div class="text-box" id="list">
                 {#each characters as character}
                     <div class="character">
-                        <button on:click = {ShowEdit} title="Edit {character.name}" class="editbutton"><h1 class="edit"><img src="../src/assets/edit.png" alt="" class="edit"/></button>
+                        <button on:click = {ShowEdit(character)} title="Edit {character.name}" class="editbutton"><h1 class="edit"><img src="../src/assets/edit.png" alt="" class="edit"/></button>
                             
                         <button on:click = {refreshData(character)} title="Select {character.name}" class="listbutton" class:selected = { character._id == selectedID }><h3 class="listname">{character.name}</h3></button>
 

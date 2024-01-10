@@ -99,7 +99,6 @@
             if(response.ok) {
                 const responseData = await response.json();
                 console.log(responseData);
-                allEntities[i] = responseData;
                 console.log(`${entitiesVar[i]} FETCHED!`);
 
                 console.log('EntityGrab:', responseData, `${entities[i]}`);
@@ -134,20 +133,57 @@
 
         }
 
-
-        for (let i = 0; i < allEntities.length; i++) {
-            const response2 = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${selectedworld._id}`);
-
+        const response2 = await fetch(`http://localhost:3000/api/ethnicity/grab/${selectedworld._id}`);
+            
             if (response2.ok) {
-                
                 const data = await response2.json();
-                console.log(data);
-                allEntities[i] = data;
-                console.log(`${entitiesVar[i]} FETCHED!`);
+                allEthnicities = data;
+                console.log(`ETHNICITIES FETCHED!`)
                 console.log('Response:', data);
-
             }
-        }  
+        const response3 = await fetch(`http://localhost:3000/api/nationality/grab/${selectedworld._id}`);
+            
+            if (response3.ok) {
+                const data = await response3.json();
+                allNationailities = data;
+                console.log(`NATIONALITIES FETCHED!`)
+                console.log('Response:', data);
+            }
+
+        const response4 = await fetch(`http://localhost:3000/api/gender/`);
+            
+            if (response4.ok) {
+                const data = await response4.json();
+                allGenders = data;
+                console.log(`GENDERS FETCHED!`)
+                console.log('Response:', data);
+            }
+        
+        const response5 = await fetch(`http://localhost:3000/api/skills/grab/${selectedworld._id}`);
+            
+            if (response5.ok) {
+                const data = await response5.json();
+                allSkills = data;
+                console.log(`SKILLS FETCHED!`)
+                console.log('Response:', data);
+            }  
+        
+        const response6 = await fetch(`http://localhost:3000/api/attributes/grab/${selectedworld._id}`);
+            
+            if (response6.ok) {
+                const data = await response6.json();
+                allAttributes = data;
+                console.log(`ATTRIBUTES FETCHED!`)
+            }
+
+        const response7 = await fetch(`http://localhost:3000/api/species/grab/${selectedworld._id}`);
+            
+            if (response7.ok) {
+                const data = await response7.json();
+                allSpecies = data;
+                console.log(`SPECIES FETCHED!`)
+            }
+          
             
     })
 

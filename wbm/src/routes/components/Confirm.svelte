@@ -7,6 +7,7 @@
 
   function handleSubmit(action) {
     dispatch(action);
+    
   }
 
 </script>
