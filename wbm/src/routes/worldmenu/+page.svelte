@@ -121,7 +121,7 @@
         <div class="container">
             <div class="map">
                 <h2>MAP</h2>
-                <h5>MAKE YOUR OWN MAP AND CLICK THE IMAGE BELOW TO UPLOAD</h5>
+                <h5>MAKE YOUR OWN MAP AND CLICK THE IMAGE BELOW TO UPLOAD IT!</h5>
                 <h5>RECOMMENDED SIZE (1920 x 1080)</h5>
                 <div id="map-box">
                     <label for="file-upload" class="custom-file-upload">

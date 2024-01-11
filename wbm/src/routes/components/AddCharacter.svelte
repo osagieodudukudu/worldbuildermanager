@@ -1,5 +1,7 @@
 <script>
     import { createEventDispatcher, onMount } from 'svelte';
+    import Modal from "../components/Modal.svelte";
+    import Confirm from "../components/Confirm.svelte";
 
 
     let dispatch = createEventDispatcher();
@@ -22,6 +24,10 @@
     let selectskills;
     let selectattributes;
     let selectspecies;
+
+    let showForm = false;
+    let confirm = "";
+    let message = "";
 
 
     /**
@@ -123,102 +129,154 @@
             }
     });
 
+    const ShowForm = () => {
+
+        showForm = !showForm;
+        console.log(showForm, `Confirmed`);
+
+    };
+
+    function setConfirm(answer) {
+        if (answer=="Y" || answer=="N"){
+            confirm = answer;
+            showForm = !showForm;
+        } else {
+            console.log('Invailid Input', confirm);
+        };
+    };
+
+    async function waitForConfirm() {
+        while(showForm){
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        console.log("Form Closed", confirm)
+    };
+
     async function handleSubmit() {
-        submitting = true; 
-        
-        if (!selectbio) { selectbio = ''; };
-        isSelected = false;
+        message = "YOU WANT TO ADD YOUR CHARACTER?"
+        ShowForm();
 
-        let entities    =   [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
-        let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+        await waitForConfirm();
 
-        for (let i = 0; i < entities.length; i++) {
+        if (confirm == "Y") {
+
+            submitting = true; 
             
-            let newEntity = {
-                world_id: selectedworld._id,
-                name: entities[i],
-            };
-
-           
-            //ADD ENTITY
-            try {
-                const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(newEntity),
-                });
-
-                if (response.ok) {
-                    const responseData = await response.json();
-
-                    switch(entitiesVar[i]) {
-                        case "nationality":
-                            nationality = responseData._id;
-                            break;
-                        case "ethnicity":
-                            ethnicity = responseData._id;
-                            break;
-                        case "gender":
-                            gender = responseData._id;
-                            break;
-                        case "skills":
-                            skills = responseData._id;
-                            break;
-                        case "attributes":
-                            attributes = responseData._id;
-                            break;
-                        case "species":
-                            species = responseData._id;
-                            break;
+            if (!selectbio) { selectbio = ''; };
+            isSelected = false;
+    
+            let entities    =   [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
+            let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+    
+            for (let i = 0; i < entities.length; i++) {
+                
+                let newEntity = {
+                    world_id: selectedworld._id,
+                    name: entities[i],
+                };
+    
+            
+                //ADD ENTITY
+                try {
+                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(newEntity),
+                    });
+    
+                    if (response.ok) {
+                        const responseData = await response.json();
+    
+                        switch(entitiesVar[i]) {
+                            case "nationality":
+                                nationality = responseData._id;
+                                break;
+                            case "ethnicity":
+                                ethnicity = responseData._id;
+                                break;
+                            case "gender":
+                                gender = responseData._id;
+                                break;
+                            case "skills":
+                                skills = responseData._id;
+                                break;
+                            case "attributes":
+                                attributes = responseData._id;
+                                break;
+                            case "species":
+                                species = responseData._id;
+                                break;
+                        }
                     }
+                    else {
+                        throw new Error(`Failed to add ${entitiesVar[i]}`);
+                    }
+    
+                } 
+                
+                catch (error) {
+                    console.error('Failed to fetch:', error);
                 }
-                else {
-                    throw new Error(`Failed to add ${entitiesVar[i]}`);
-                }
-
-            } 
-            
-            catch (error) {
-                console.error('Failed to fetch:', error);
             }
+        
+            if (selectname ) { 
+            
+                    const character = {
+                        world_id: selectedworld._id,
+                        name: selectname,
+                        age: selectage,
+                        ethnicity,
+                        nationality,
+                        gender,
+                        skills,
+                        attributes,
+                        species,
+                        bio: selectbio,
+                        image,
+                        isSelected
+                    };
+    
+                    
+                console.log('New Character in Queue', character);
+    
+                dispatch('AddCharactertoList', character);
+            
+            } else {
+                window.alert("Give your character a name")
+            }
+            
+        }
+        else {
+            console.log("Submit not confirmed")
+        }
+
+    }
+
+    async function handleCancel() {
+
+        message = "YOU WANT TO CANCEL?"
+        ShowForm();
+
+        await waitForConfirm();
+
+        if (confirm == "Y") {
+            dispatch('Cancel');
+
+        } else {
+            throw new Error(`Failed to add ${entitiesVar[i]}`);
         }
     
-        if (selectname && nationality && ethnicity && gender && skills && attributes && species) { 
-        
-                const character = {
-                    world_id: selectedworld._id,
-                    name: selectname,
-                    age: selectage,
-                    ethnicity,
-                    nationality,
-                    gender,
-                    skills,
-                    attributes,
-                    species,
-                    bio: selectbio,
-                    image,
-                    isSelected
-                };
-
-                
-            console.log('New Character in Queue', character);
-
-            dispatch('AddCharactertoList', character);
-        }
-        
-    }
-
-    function handleCancel() {
-
-    dispatch('Cancel');
-
-    }
+    } 
 
 </script>
 
-<form on:submit|preventDefault = {handleSubmit}>
+<Modal {showForm}>
+    <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
+</Modal>
+
+<form on:submit|preventDefault = {handleSubmit} style="display: {showForm ? 'none' : 'grid'}">
         
     <h3>ADD YOUR CHARACTER!</h3> 
 
@@ -260,7 +318,10 @@
             {/each}
         </select>
 
-        <br><br>
+    </div>
+    <div>
+
+        
         <h4>Gender</h4>
         <input type="text" class="gender" bind:value={selectgender}>
         <h4 class="note"> or Pick from a Selection</h4>
@@ -304,12 +365,12 @@
             {/each}
         </select>
 
-        <br><br><br><br>
-        <button>ADD YOUR CHARACTER</button>
-        <br><br><button on:click={handleCancel}>CANCEL NEW CHARACTER</button>
     </div>
-
-    </div>
+    
+</div>
+<br><br><br><br>
+<button>ADD YOUR CHARACTER</button>
+<br><br><button on:click={handleCancel}>CANCEL NEW CHARACTER</button>
     
     
 </form>   
@@ -366,6 +427,12 @@
     .note {
         font-size: 60%;
         color:rgb(201, 201, 201)
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 50px;
     }
     
 </style>

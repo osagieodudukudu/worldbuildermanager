@@ -324,7 +324,9 @@
             {/each}
         </select>
 
-        <br><br>
+    </div>
+    <div>
+
         <h4>Gender</h4>
         <input type="text" class="gender" bind:value={selectgender}>
         <h4 class="note"> or Pick from a Selection</h4>
@@ -430,6 +432,12 @@
     .note {
         font-size: 60%;
         color:rgb(201, 201, 201)
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 50px;
     }
     
 </style>

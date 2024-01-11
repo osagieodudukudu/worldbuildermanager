@@ -132,7 +132,6 @@
         handleSelect(e);
         showEdit = !showEdit;
         console.log(showEdit, `Edit made it through`)
-        
     };
 
     function setConfirm(answer) {
@@ -277,7 +276,6 @@
         await waitForConfirm();
 
         if ( confirm=="Y" ){
-
             try {
                 // Select the next character
                 const selectResponse = await fetch(`http://localhost:3000/api/characters/select/next/${object._id}`, {
@@ -348,8 +346,66 @@
             
             if (response.ok) {
                 const updatedCharacter = await response.json();
+                
                 selectedcharacter = updatedCharacter;
+                selectedID = updatedCharacter._id;
+                name = updatedCharacter.name;
+                age = updatedCharacter.age;
+                bio = updatedCharacter.bio;
+                
+                let entities    =   [updatedCharacter.nationality, updatedCharacter.ethnicity, updatedCharacter.gender, updatedCharacter.skills, selectedcharacter.attributes, selectedcharacter.species];
+                let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+                
+                for (let i = 0; i < entities.length; i++) {
+                    
+                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
+                    
+                    if(response.ok) {
+                        const responseData = await response.json();
+                        console.log(responseData);
+                        console.log(`${entitiesVar[i]} FETCHED!`);
+
+                        console.log('EntityGrab:', responseData, `${entities[i]}`);
+                        
+                        switch(entitiesVar[i]) {
+                            case "nationality": 
+                                nationality = responseData[0].name;
+                        
+                                console.log (nationality);
+                                break;
+                            case "ethnicity":
+                                ethnicity = responseData[0].name;
+                
+                                console.log (ethnicity);
+                                break;
+                            case "gender":
+                                gender = responseData[0].name;
+                                console.log (gender);
+                                break;
+                            case "skills":  
+                                skills = responseData[0].name;
+                                console.log (skills);
+                                break;
+                            case "attributes":
+                                attributes = responseData[0].name;
+                    
+                                console.log (attributes);
+                                break;
+                            case "species":
+                                species = responseData[0].name;
+                                console.log (species);
+                                break;                        
+                        }
+                    }
+
+                }
+
                 console.log('Character updated:', updatedCharacter);
+
+                const updatedCharactersResponse = await fetch('http://localhost:3000/api/characters');
+                const updatedCharacters = await updatedCharactersResponse.json();
+                console.log('Reloaded Character List:', updatedCharacters, characters);
+                characters = updatedCharacters.reverse();
             } 
             else {
             console.error('Error editing character:', response.status);
@@ -366,32 +422,38 @@
         console.log('Edit Character clicked');
         showEdit = !showEdit;
     };
-
-    function handleFileChange(event) {
-        const file = event.target.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = () => {
-            const image = reader.result;
-            
-            const character = {
-                image
-            };
-            
-            editCharacter(character);
-        };
     
-        reader.readAsDataURL(file);
+    function handleFileChange(event) {
+
+        if (selectedID) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async () => {
+                image = reader.result;
+                
+                const character = {
+                    image
+                };
+                
+                editCharacter(character);
+            };
+        
+            reader.readAsDataURL(file);
+
+        } else {
+            window.alert("No Character Selected")
+        };
     };
 
     function handleFileRemove(){
-        const image = "";
+        image = "";
 
-        const characters = {
+        const character = {
             image
         };
 
-        editCharacter(characters);
+        editCharacter(character);
 
     };
 
@@ -787,6 +849,7 @@
         background: rgb(255, 231, 196);
         border-radius: 20px;
         padding: 20px;
+        max-height: 900px;
     }
     .text-box{
         background-color: white;
@@ -803,7 +866,8 @@
     h2 {
         font-size: small;
         text-align: center;
-        color: rgba(0, 0, 0, 0.311)    }
+        color: rgba(0, 0, 0, 0.311)    
+    }
     h3 {
         color: rgb(185, 185, 185);
         font-size: medium;
