@@ -1,6 +1,7 @@
 <script>
     import { createEventDispatcher, onMount } from 'svelte';
-
+    import Modal from "../components/Modal.svelte";
+    import Confirm from "../components/Confirm.svelte";
 
     let dispatch = createEventDispatcher();
     
@@ -24,6 +25,10 @@
     let selectskills;
     let selectattributes;
     let selectspecies;
+
+    let showForm = false;
+    let confirm = "";
+    let message = "";
 
 
     /**
@@ -184,105 +189,181 @@
             
     });
 
+    const ShowForm = () => {
+
+        showForm = !showForm;
+        console.log(showForm, `Confirmed`);
+
+    };
+
+    function setConfirm(answer) {
+        if (answer=="Y" || answer=="N"){
+            confirm = answer;
+            showForm = !showForm;
+        } else {
+            console.log('Invailid Input', confirm);
+        };
+    };
+
+    async function waitForConfirm() {
+        while(showForm){
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        console.log("Form Closed", confirm)
+    };
+
     async function handleSubmit() {
-        submitting = true; 
-        
-        if (!selectbio) { selectbio = ''; }; 
-        isSelected = false;
+        message = "YOU WANT TO EDIT YOUR CHARACTER?"
+        ShowForm();
 
-        let entities    =   [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
-        let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+        await waitForConfirm();
 
-        for (let i = 0; i < entities.length; i++) {
+        if (confirm == "Y") {
+            confirm = "";
+            submitting = true; 
             
-            let Entity = {
-                world_id: selectedworld._id,
-                name: entities[i],
-            };
+            if (!selectbio) { selectbio = '' }; 
+            isSelected = false;
+    
+            let entities    =   [selectedcharacter.nationality, selectedcharacter.ethnicity, selectedcharacter.gender, selectedcharacter.skills, selectedcharacter.attributes, selectedcharacter.species];
+            let entitiesName = [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
+            let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+    
+            for (let i = 0; i < entitiesName.length; i++) {
+                if (entitiesName[i] && !(entitiesName[i].trim().length === 0)){
 
-           
-            //EDIT ENTITY
-            try {
-                const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(Entity),
-                });
+                    let Entity = {
+                        world_id: selectedworld._id,
+                        name: entitiesName[i],
+                    };
+        
+                
+                    //EDIT ENTITY
+                    try {
+                        let response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/${entities[i]}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+    
+                            },
+                            body: JSON.stringify(Entity),
+                        });
 
-                if (response.ok) {
-                    const responseData = await response.json();
+                        if (!response.ok) {
+                            //ADD ENTITY
 
-                    switch(entitiesVar[i]) {
-                        case "nationality":
-                            nationality = responseData._id;
-                            console.log(nationality);
-                            break;
-                        case "ethnicity":
-                            ethnicity = responseData._id;
-                            console.log(ethnicity);
-                            break;
-                        case "gender":
-                            gender = responseData._id;
-                            console.log(gender);
-                            break;
-                        case "skills":
-                            skills = responseData._id;
-                            console.log(skills);
-                            break;
-                        case "attributes":
-                            attributes = responseData._id;
-                            console.log(attributes);
-                            break;
-                        case "species":
-                            species = responseData._id;
-                            console.log(species);
-                            break;
+                            response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(Entity),
+                            });
+        
+                        }
+        
+                        if (response.ok) {
+                            const responseData = await response.json();
+        
+                            switch(entitiesVar[i]) {
+                                case "nationality":
+                                    nationality = responseData._id;
+                                    console.log(nationality);
+                                    break;
+                                case "ethnicity":
+                                    ethnicity = responseData._id;
+                                    console.log(ethnicity);
+                                    break;
+                                case "gender":
+                                    gender = responseData._id;
+                                    console.log(gender);
+                                    break;
+                                case "skills":
+                                    skills = responseData._id;
+                                    console.log(skills);
+                                    break;
+                                case "attributes":
+                                    attributes = responseData._id;
+                                    console.log(attributes);
+                                    break;
+                                case "species":
+                                    species = responseData._id;
+                                    console.log(species);
+                                    break;
+                            }
+                        } else {
+                            throw new Error(`Failed to edit ${entitiesVar[i]}`);
+                        }
+        
+                    } catch (error) {
+                        console.error('Failed to fetch:', error);
                     }
-                }
-                else {
-                    throw new Error(`Failed to add ${entitiesVar[i]}`);
+
+                } else {
+                    await fetch(`http://localhost:3000/api/${entitiesVar[i]}/${entities[i]}`, {
+                            method: 'DELETE',
+                    });
                 }
 
-            } catch (error) {
-                console.error('Failed to fetch:', error);
             }
+        
+            if (selectname) { 
+            
+                    const character = {
+                        world_id: selectedworld._id,
+                        name: selectname,
+                        age: selectage,
+                        ethnicity,
+                        nationality,
+                        gender,
+                        skills,
+                        attributes,
+                        species,
+                        bio: selectbio,
+                        isSelected
+                    };
+    
+                    
+                console.log('Character in Queue', character);
+    
+                dispatch('UpdateCharacter', character);
+            } else {
+                window.alert("Give your character a name")
+            }
+
+        } else {
+            console.log("Submit not confirmed")
+            confirm = "";
+        }
+        
+        
+    };
+
+    async function handleCancel() {
+
+        message = "YOU WANT TO CANCEL?"
+        ShowForm();
+
+        await waitForConfirm();
+
+        if (confirm == "Y") {
+            dispatch('CancelAdd');
+            confirm = "";
+
+        } else {
+            console.log("Cancel not confirmed");
+            confirm = "";
         }
     
-        if (selectname && nationality && ethnicity && gender && skills && attributes && species) { 
-        
-                const character = {
-                    world_id: selectedworld._id,
-                    name: selectname,
-                    age: selectage,
-                    ethnicity,
-                    nationality,
-                    gender,
-                    skills,
-                    attributes,
-                    species,
-                    bio: selectbio,
-                    isSelected
-                };
-
-                
-            console.log('Character in Queue', character);
-
-            dispatch('UpdateCharacter', character);
-        }
-        
-    };
-
-    function handleCancel() {
-
-    dispatch('Cancel');
-
-    };
+    } 
 
 </script>
 
-<form on:submit|preventDefault = {handleSubmit}>
+<Modal {showForm}>
+    <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
+</Modal>
+
+<form on:submit|preventDefault = {handleSubmit} style="display: {showForm ? 'none' : 'grid'}">
         
     <h3>EDIT YOUR CHARACTER!</h3> 
 
@@ -370,12 +451,12 @@
             {/each}
         </select>
 
-        <br><br><br><br>
-        <button>EDIT YOUR CHARACTER</button>
-        <br><br><button on:click={handleCancel}>CANCEL EDIT CHARACTER</button>
     </div>
-
-    </div>
+    
+</div>
+<br><br><br><br>
+<button>EDIT YOUR CHARACTER</button>
+<br><br><button on:click={handleCancel}>CANCEL</button>
     
     
 </form>   

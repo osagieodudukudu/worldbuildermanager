@@ -461,8 +461,15 @@
         console.log('New Character Selction')
 
         let finished = handleSelect(object);
-
+        
         if (finished) {
+
+            selectedID = object._id;
+            name = object.name;
+            age = object.age;
+            bio = object.bio;
+            image = object.image; 
+
             let entities    =   [object.nationality, object.ethnicity, object.gender, object.skills, object.attributes, object.species];
             let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
 
@@ -475,7 +482,7 @@
                     console.log('EntityGrab:', responseData, `${entities[i]}`);
 
                     switch(entitiesVar[i]) {
-                        case "nationality": 
+                        case "nationality":
                             nationality = responseData[0].name;
                             console.log (nationality);
                             break;
@@ -500,13 +507,37 @@
                             console.log (species);
                             break;
                     }
+
+                } else {
+
+                    switch(entitiesVar[i]) {
+                        case "nationality":
+                            nationality = "";
+                            console.log (nationality);
+                            break;
+                        case "ethnicity":
+                            ethnicity = "";
+                            console.log (ethnicity);
+                            break;
+                        case "gender":
+                            gender = "";
+                            console.log (gender);
+                            break;
+                        case "skills":
+                            skills = "";
+                            console.log (skills);
+                            break;
+                        case "attributes":
+                            attributes = "";
+                            console.log (attributes);
+                            break;
+                        case "species":
+                            species = "";
+                            console.log (species);
+                            break;
+                    }
                 }
             }
-            selectedID = object._id
-            name = object.name;
-            age = object.age;
-            bio = object.bio;
-            image = object.image;    
         }
         else {
             console.error("Couldn't finish. Failed to Select Character");  
@@ -520,12 +551,12 @@
 
 <!-- Add Character Form -->
 <Modal {showAdd}>
-    <AddCharacter on:AddCharactertoList={addCharacter} on:Cancel={ShowAdd}/>
+    <AddCharacter on:AddCharactertoList={addCharacter} on:CancelAdd={ShowAdd}/>
 </Modal>
 
 <!-- Edit Character Form -->
 <Modal {showEdit}>
-    <EditCharacter on:UpdateCharacter={handleEditCharacter} on:Cancel={ShowEdit}/>
+    <EditCharacter on:UpdateCharacter={handleEditCharacter} on:CancelEdit={ShowEdit}/>
 </Modal>
     
 <body style="display: {showAdd || showEdit ? 'none' : 'grid'}">
@@ -676,7 +707,7 @@
                 </h3> 
                 
             {:else}
-                <h3 class ='blank'>ADD <br>A NEW CHARACTER <br><br> or <br><br> SELECT <br>A CHARACTER FROM THE LIST</h3>
+                <h3 class ='blank'>ADD<br>A NEW CHARACTER<br><br> or <br><br>SELECT<br>A CHARACTER FROM THE LIST</h3>
             {/if}
 
             

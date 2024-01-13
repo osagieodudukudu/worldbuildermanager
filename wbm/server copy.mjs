@@ -65,10 +65,10 @@ const charactersSchema = new Schema ({
     type: mongoose.Schema.Types.ObjectId,
     ref:'attributesSchema'
   }],
-  species: {
+  species: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'speciesSchema'
-  },
+  }],
   bio: String,
   image: String,
 })

@@ -153,106 +153,108 @@
     };
 
     async function handleSubmit() {
-        message = "YOU WANT TO ADD YOUR CHARACTER?"
+        message = "YOU WANT TO ADD YOUR CHARACTER?";
         ShowForm();
 
         await waitForConfirm();
 
         if (confirm == "Y") {
-
+            
+            confirm = "";
             submitting = true; 
             
             if (!selectbio) { selectbio = ''; };
             isSelected = false;
     
-            let entities    =   [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
+            let entitiesName    =   [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
             let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
     
-            for (let i = 0; i < entities.length; i++) {
-                
-                let newEntity = {
-                    world_id: selectedworld._id,
-                    name: entities[i],
-                };
-    
-            
-                //ADD ENTITY
-                try {
-                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(newEntity),
-                    });
-    
-                    if (response.ok) {
-                        const responseData = await response.json();
-    
-                        switch(entitiesVar[i]) {
-                            case "nationality":
-                                nationality = responseData._id;
-                                break;
-                            case "ethnicity":
-                                ethnicity = responseData._id;
-                                break;
-                            case "gender":
-                                gender = responseData._id;
-                                break;
-                            case "skills":
-                                skills = responseData._id;
-                                break;
-                            case "attributes":
-                                attributes = responseData._id;
-                                break;
-                            case "species":
-                                species = responseData._id;
-                                break;
-                        }
-                    }
-                    else {
-                        throw new Error(`Failed to add ${entitiesVar[i]}`);
-                    }
-    
-                } 
-                
-                catch (error) {
-                    console.error('Failed to fetch:', error);
-                }
-            }
-        
-            if (selectname ) { 
-            
-                    const character = {
+            for (let i = 0; i < entitiesName.length; i++) {
+
+
+                    let newEntity = {
                         world_id: selectedworld._id,
-                        name: selectname,
-                        age: selectage,
-                        ethnicity,
-                        nationality,
-                        gender,
-                        skills,
-                        attributes,
-                        species,
-                        bio: selectbio,
-                        image,
-                        isSelected
+                        name: entitiesName[i],
                     };
-    
-                    
+        
+                
+                    //ADD ENTITY
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(newEntity),
+                        });
+        
+                        if (response.ok) {
+                            const responseData = await response.json();
+        
+                            switch(entitiesVar[i]) {
+                                case "nationality":
+                                    nationality = responseData._id;
+                                    break;
+                                case "ethnicity":
+                                    ethnicity = responseData._id;
+                                    break;
+                                case "gender":
+                                    gender = responseData._id;
+                                    break;
+                                case "skills":
+                                    skills = responseData._id;
+                                    break;
+                                case "attributes":
+                                    attributes = responseData._id;
+                                    break;
+                                case "species":
+                                    species = responseData._id;
+                                    break;
+                            }
+                        }
+                        else {
+                            throw new Error(`Failed to add ${entitiesVar[i]}`);
+                        }
+        
+                    } catch (error) {
+                        console.error('Failed to fetch:', error);
+                    }
+                
+            }
+
+            if (selectname) { 
+                
+                const character = {
+                    world_id: selectedworld._id,
+                    name: selectname,
+                    age: selectage,
+                    ethnicity,
+                    nationality,
+                    gender,
+                    skills,
+                    attributes,
+                    species,
+                    bio: selectbio,
+                    image,
+                    isSelected
+                };
+        
+                        
                 console.log('New Character in Queue', character);
     
                 dispatch('AddCharactertoList', character);
-            
+                
             } else {
                 window.alert("Give your character a name")
             }
-            
-        }
-        else {
-            console.log("Submit not confirmed")
+
+        } else {
+            console.log("Submit not confirmed");
+            confirm = "";
         }
 
     }
+    
 
     async function handleCancel() {
 
@@ -262,10 +264,12 @@
         await waitForConfirm();
 
         if (confirm == "Y") {
-            dispatch('Cancel');
+            dispatch('CancelAdd');
+            confirm = "";
 
         } else {
-            throw new Error(`Failed to add ${entitiesVar[i]}`);
+            console.log("Cancel not confirmed");
+            confirm = "";
         }
     
     } 
@@ -320,8 +324,6 @@
 
     </div>
     <div>
-
-        
         <h4>Gender</h4>
         <input type="text" class="gender" bind:value={selectgender}>
         <h4 class="note"> or Pick from a Selection</h4>
@@ -370,7 +372,7 @@
 </div>
 <br><br><br><br>
 <button>ADD YOUR CHARACTER</button>
-<br><br><button on:click={handleCancel}>CANCEL NEW CHARACTER</button>
+<br><br><button on:click={handleCancel}>CANCEL</button>
     
     
 </form>   
