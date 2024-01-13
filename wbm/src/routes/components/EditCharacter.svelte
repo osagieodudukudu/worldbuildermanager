@@ -311,6 +311,7 @@
             
                     const character = {
                         world_id: selectedworld._id,
+                        _id: selectedcharacter._id,
                         name: selectname,
                         age: selectage,
                         ethnicity,

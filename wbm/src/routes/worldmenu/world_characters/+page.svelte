@@ -95,23 +95,6 @@
             console.log('Response:', data);
         }
 
-        const response3 = await fetch('http://localhost:3000/api/characters/selected');
-    
-        if (response3.ok) {
-            const data = await response3.json();
-
-            if (data.world_id == selectedworld._id) {
-                selectedcharacter = data;
-            }
-
-            console.log('SELECTED CHARACTER FETCHED!')
-            console.log('Response:', selectedcharacter);
-        }
-        else {
-            selectedcharacter = selectedcharacter;
-        }
-        handleSelect(selectedcharacter)
-
     });
 
     const ShowForm = () => {
@@ -149,6 +132,24 @@
         }
         console.log("Form Closed", confirm)
     };
+
+    async function getSelected() {
+        const response = await fetch('http://localhost:3000/api/characters/selected');
+    
+        if (response.ok) {
+            const data = await response.json();
+
+            if (data.world_id == selectedworld._id) {
+                selectedcharacter = data;
+            }
+
+            console.log('SELECTED CHARACTER FETCHED!')
+            console.log('Response:', selectedcharacter);
+        }
+        else {
+            selectedcharacter = selectedcharacter;
+        }
+    };
     
     async function handleSelect(object){
         
@@ -163,7 +164,8 @@
         if (response.ok) {
             const selectedcharacter = await response.json();
             console.log('SELECTED CHARACTER FETCHED!');
-            console.log('Response:', selectedcharacter);
+            console.log('Response:', selectedcharacter.name);
+
             return true;
         } 
 
@@ -240,27 +242,42 @@
                 switch(entitiesVar[i]) {
                     case "nationality": 
                         nationality = responseData[0].name;
-                        console.log (nationality);
                         break;
                     case "ethnicity":
                         ethnicity = responseData[0].name;
-                        console.log (ethnicity);
                         break;
                     case "gender":
                         gender = responseData[0].name;
-                        console.log (gender);
                         break;
                     case "skills":  
                         skills = responseData[0].name;
-                        console.log (skills);
                         break;
                     case "attributes":
                         attributes = responseData[0].name;
-                        console.log (attributes);
                         break;
                     case "species":
                         species = responseData[0].name;
-                        console.log (species);
+                        break;                        
+                    }
+            } else {
+                switch(entitiesVar[i]) {
+                    case "nationality": 
+                        nationality = "";
+                        break;
+                    case "ethnicity":
+                        ethnicity = "";
+                        break;
+                    case "gender":
+                        gender = "";
+                        break;
+                    case "skills":  
+                        skills = "";
+                        break;
+                    case "attributes":
+                        attributes = "";
+                        break;
+                    case "species":
+                        species = "";
                         break;                        
                     }
             }
@@ -320,21 +337,16 @@
             }
             catch (error) {
                 console.error('Error:', error.message);
-            }
-            console.log("Before reset", confirm);
+            }                                   
             confirm = "";
-            console.log("After reset", confirm);
         } else {
-            console.log("Delete not confirmed")
-            console.log("Before reset", confirm);
             confirm = "";
-            console.log("After reset", confirm);
         };
     };
 
     async function editCharacter(updatedCharacterData) {
-        const objectId = selectedcharacter._id;
-        console.log(typeof [objectId]);
+        const objectId = updatedCharacterData._id;
+        console.log(updatedCharacterData.name, objectId);
         try {
             const response = await fetch(`http://localhost:3000/api/characters/${objectId}`, {
             method: 'PUT',
@@ -356,6 +368,7 @@
                 let entities    =   [updatedCharacter.nationality, updatedCharacter.ethnicity, updatedCharacter.gender, updatedCharacter.skills, selectedcharacter.attributes, selectedcharacter.species];
                 let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
                 
+
                 for (let i = 0; i < entities.length; i++) {
                     
                     const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
@@ -424,7 +437,6 @@
     };
     
     function handleFileChange(event) {
-
         if (selectedID) {
             const file = event.target.files[0];
             const reader = new FileReader();
@@ -433,6 +445,7 @@
                 image = reader.result;
                 
                 const character = {
+                    _id: selectedID,
                     image
                 };
                 
@@ -475,68 +488,59 @@
 
             for (let i = 0; i < entities.length; i++) {
 
-                const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-
-                if(response.ok) {
-                    const responseData = await response.json();
-                    console.log('EntityGrab:', responseData, `${entities[i]}`);
-
-                    switch(entitiesVar[i]) {
-                        case "nationality":
-                            nationality = responseData[0].name;
-                            console.log (nationality);
-                            break;
-                        case "ethnicity":
-                            ethnicity = responseData[0].name;
-                            console.log (ethnicity);
-                            break;
-                        case "gender":
-                            gender = responseData[0].name;
-                            console.log (gender);
-                            break;
-                        case "skills":
-                            skills = responseData[0].name;
-                            console.log (skills);
-                            break;
-                        case "attributes":
-                            attributes = responseData[0].name;
-                            console.log (attributes);
-                            break;
-                        case "species":
-                            species = responseData[0].name;
-                            console.log (species);
-                            break;
+                if (entities[i]){
+                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
+    
+                    if(response.ok) {
+                        const responseData = await response.json();
+    
+                        switch(entitiesVar[i]) {
+                            case "nationality":
+                                nationality = responseData[0].name;
+                                break;
+                            case "ethnicity":
+                                ethnicity = responseData[0].name;
+                                break;
+                            case "gender":
+                                gender = responseData[0].name;
+                                break;
+                            case "skills":
+                                skills = responseData[0].name;
+                                break;
+                            case "attributes":
+                                attributes = responseData[0].name;
+                                break;
+                            case "species":
+                                species = responseData[0].name;
+                                break;
+                        }
+    
                     }
 
                 } else {
-
                     switch(entitiesVar[i]) {
                         case "nationality":
                             nationality = "";
-                            console.log (nationality);
                             break;
                         case "ethnicity":
                             ethnicity = "";
-                            console.log (ethnicity);
                             break;
                         case "gender":
                             gender = "";
-                            console.log (gender);
                             break;
                         case "skills":
                             skills = "";
-                            console.log (skills);
                             break;
                         case "attributes":
                             attributes = "";
-                            console.log (attributes);
                             break;
                         case "species":
                             species = "";
-                            console.log (species);
                             break;
                     }
+
                 }
+
             }
         }
         else {
