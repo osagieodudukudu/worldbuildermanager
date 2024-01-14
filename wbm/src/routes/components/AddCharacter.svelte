@@ -1,6 +1,6 @@
 <script>
     import { createEventDispatcher, onMount } from 'svelte';
-    import Modal from "../components/Modal.svelte";
+    import Form from "../components/Form.svelte";
     import Confirm from "../components/Confirm.svelte";
 
 
@@ -220,9 +220,10 @@
     
 
     async function handleCancel() {
-
         message = "YOU WANT TO CANCEL?"
+        console.log("Message", message);
         ShowForm();
+        console.log("Form:", showForm);
 
         await waitForConfirm();
 
@@ -234,16 +235,15 @@
             console.log("Cancel not confirmed");
             confirm = "";
         }
-    
     } 
 
 </script>
 
-<Modal {showForm}>
+<Form {showForm}>
     <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
-</Modal>
+</Form>
 
-<form on:submit|preventDefault = {handleSubmit} style="display: {showForm ? 'none' : 'grid'}">
+<form on:submit|preventDefault = {handleSubmit}>
         
     <h3>ADD YOUR CHARACTER!</h3> 
 
@@ -263,7 +263,7 @@
         <br><br>
         <br><br>
         <h4>Age</h4>
-        <input type="number" class="age" bind:value={selectage} required={submitting} min="0">
+        <input type="number" class="age" bind:value={selectage} min="0">
 
         <br><br>
     </div>
@@ -315,7 +315,7 @@
 </div>
 <br><br><br><br>
 <button>ADD YOUR CHARACTER</button>
-<br><br><button on:click={handleCancel}>CANCEL</button>
+<br><br><button type="button" on:click={handleCancel}>CANCEL</button>
     
     
 </form>   

@@ -1,6 +1,6 @@
 <script>
     import { createEventDispatcher, onMount } from 'svelte';
-    import Modal from "../components/Modal.svelte";
+    import Form from "../components/Form.svelte";
     import Confirm from "../components/Confirm.svelte";
 
     let dispatch = createEventDispatcher();
@@ -295,12 +295,14 @@
     async function handleCancel() {
 
         message = "YOU WANT TO CANCEL?"
+        console.log("Message", message);
         ShowForm();
+        console.log("Form:", showForm);
 
         await waitForConfirm();
 
         if (confirm == "Y") {
-            dispatch('CancelAdd');
+            dispatch('CancelEdit');
             confirm = "";
 
         } else {
@@ -312,11 +314,11 @@
 
 </script>
 
-<Modal {showForm}>
+<Form {showForm}>
     <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
-</Modal>
+</Form>
 
-<form on:submit|preventDefault = {handleSubmit} style="display: {showForm ? 'none' : 'grid'}">
+<form on:submit|preventDefault = {handleSubmit}>
         
     <h3>EDIT YOUR CHARACTER!</h3> 
 
@@ -333,8 +335,13 @@
         
         
         <br><br>
+        <br><br>
+        <br><br>
         <h4>Age</h4>
-        <input type="number" class="age" bind:value={selectage} required={submitting} min="0">
+        <input type="number" class="age" bind:value={selectage} min="0">
+
+    </div>
+    <div>
 
         <br><br>
         <h4>Nationality</h4>
@@ -358,8 +365,7 @@
             {/each}
         </select>
 
-    </div>
-    <div>
+    
 
         <h4>Gender</h4>
         <input type="text" class="gender" bind:value={selectgender}>
@@ -387,7 +393,7 @@
 </div>
 <br><br><br><br>
 <button>EDIT YOUR CHARACTER</button>
-<br><br><button on:click={handleCancel}>CANCEL</button>
+<br><br><button type="button" on:click={handleCancel}>CANCEL</button>
     
     
 </form>   

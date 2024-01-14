@@ -124,27 +124,9 @@
         }
         console.log("Form Closed", confirm)
     };
-
-    async function getSelected() {
-        const response = await fetch('http://localhost:3000/api/characters/selected');
-    
-        if (response.ok) {
-            const data = await response.json();
-
-            if (data.world_id == selectedworld._id) {
-                selectedcharacter = data;
-            }
-
-            console.log('SELECTED CHARACTER FETCHED!')
-            console.log('Response:', selectedcharacter);
-        }
-        else {
-            selectedcharacter = selectedcharacter;
-        }
-    };
     
     async function handleSelect(object){
-        
+        selectedID = object._id;
         const response = await fetch(`http://localhost:3000/api/characters/select/${ object._id }`, {
             method: 'PUT',
             headers: {
@@ -313,6 +295,15 @@
                 const updatedCharacters = await updatedCharactersResponse.json();
                 characters = updatedCharacters.reverse();
                 console.log(updatedCharacters);
+
+                name = "";
+                age = "";
+                bio = "";
+                image  = "";
+                nationality = "";
+                ethnicity = "";
+                gender = "";
+                species = "";
                     
             }
             catch (error) {
@@ -447,8 +438,6 @@
         let finished = handleSelect(object);
         
         if (finished) {
-
-            selectedID = object._id;
             name = object.name;
             age = object.age;
             bio = object.bio;
