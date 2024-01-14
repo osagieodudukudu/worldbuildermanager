@@ -4,9 +4,14 @@
     import Header from "./components/Header.svelte";
     import Footer from "./components/Footer.svelte";
     import Modal from "./components/Modal.svelte";
+    import Form from "./components/Form.svelte";
+    import Confirm from "./components/Confirm.svelte";
     import AddWorld from "./components/AddWorld.svelte";
 
+    let showAdd = false;
     let showForm = false;
+    let confirm = "";
+    let message = "";
     
     /**
      * @type {any[]}
@@ -21,7 +26,6 @@
             //Keep Consistent Order of Worlds
             const listworlds = await response.json();
             worlds = listworlds;
-            console.log('Response:', worlds);
 
             } 
             
@@ -33,16 +37,41 @@
         } 
         
         catch (error) {
-
+            
             console.error('Error retrieving worlds:', error);
-
+            
         }
-        });
-
+    });
+    
+    const ShowAdd = () => {
+    
+        showAdd = !showAdd;
+    
+    };
+    
+    const ShowForm = () => {
+    
+        showForm = !showForm;
+    
+    };
+    
+    function setConfirm(answer) {
+        if (answer=="Y" || answer=="N"){
+            confirm = answer;
+            showForm = !showForm;
+        } else {
+            confirm = "N";
+        };
+    };
+    
+    async function waitForConfirm() {
+        while(showForm){
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    };
 
     // @ts-ignore
     function handleClick(objectid) {
-    console.log(objectid);
         
     fetch(`http://localhost:3000/api/worlds/select/${objectid}`, {
         method: 'PUT',
@@ -54,7 +83,6 @@
         .then(response => {
             if (response.status === 204) {
 
-                console.log('World selected successfully');
 
             } else if (response.ok) {
 
@@ -65,25 +93,16 @@
             }
         })
         .then(selectedWorld => {
-            console.log(selectedWorld);
             window.location.href = '/worldmenu';
         })    
         .catch(error => {
             console.error('Error:', error);
         });
-};
-
-        
-    const ShowForm = () => {
-
-        showForm = !showForm;
-
     };
-
+        
     // @ts-ignore
     const addWorld = (e) => {
     
-        console.log(e.detail);
         const newWorld = e.detail;
 
         fetch('http://localhost:3000/api/worlds/add', {
@@ -106,10 +125,9 @@
         })
             .then((addedWorld) => {
 
-            console.log('Added World:', addedWorld);
             worlds = [addedWorld, ...worlds];
 
-            showForm = !showForm;
+            showAdd = !showAdd;
 
             })
 
@@ -121,26 +139,37 @@
 
 
     // @ts-ignore
-    const DeleteWorld = (id) => {
-        fetch(`http://localhost:3000/api/worlds/${id}`, {
-            method: 'DELETE',
-        })
-            .then((response) => {
-            if (response.ok) {
-                console.log('World deleted successfully');
-                return fetch('http://localhost:3000/api/worlds');
-            } 
-            else {
-                throw new Error(`Failed to delete world with ID ${id}`);
-            }
+    const deleteWorld = async (id) => {
+        message = "YOU WANT TO DELETE YOUR WORLD?"
+        ShowForm();
+
+        await waitForConfirm();
+
+        if ( confirm == "Y" ) {
+            fetch(`http://localhost:3000/api/worlds/${id}`, {
+                method: 'DELETE',
             })
-            .then((response) => response.json())
-            .then((updatedWorlds) => {
-                worlds = updatedWorlds.reverse();
+                .then((response) => {
+                if (response.ok) {
+                    return fetch('http://localhost:3000/api/worlds');
+                } 
+                else {
+                    throw new Error(`Failed to delete world with ID ${id}`);
+                }
                 })
-            .catch((error) => {
-                console.error('Error:', error);
+                .then((response) => response.json())
+                .then((updatedWorlds) => {
+                    worlds = updatedWorlds.reverse();
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
                 });
+
+                confirm = "";
+
+        } else {
+            confirm = "";
+        };
 };
 
 </script>
@@ -149,14 +178,18 @@
 <Header />
 
 <!-- New World Form -->
+<Modal {showAdd}>
+    <AddWorld on:AddWorldtoList={addWorld} on:Cancel={ShowAdd}/>
+</Modal>
 
+<!-- Confirmation -->
+<Form {showForm}>
+    <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
+</Form>
 
 <!-- World Gallery -->
-<body class:hidden={showForm}>
+<body class:hidden={showAdd}>
     <div class="wrapper" >
-        <Modal {showForm}>
-            <AddWorld on:AddWorldtoList={addWorld} on:Cancel={ShowForm}/>
-        </Modal>
 
         <div class="carousel">
             <container class="world">
@@ -164,7 +197,7 @@
                     <!-- Name -->
                     <h2 class="name">Add New World</h2>
                     <!-- Button Shape -->
-                    <button on:click={ShowForm}
+                    <button on:click={ShowAdd}
                         ><img
                             src="./src/assets/add_world_icon.png"
                             alt=""
@@ -195,7 +228,7 @@
                         <div class="profile"><img class="profileimg" src={world.profile ? world.profile : './src/assets/blank_world_profile.png'} on:click={() => handleClick(world._id)} data-sveltekit-preload-data="hover" alt="" /></div>
                     </container>
 
-                    <button on:dblclick={() => DeleteWorld(world._id)} title="Delete {world.name}" class="delete"> 
+                    <button on:click={() => deleteWorld(world._id)} title="Delete {world.name}" class="delete"> 
                         <img src="./src/assets/delete.png" alt="" />
                     </button>
                 </container>

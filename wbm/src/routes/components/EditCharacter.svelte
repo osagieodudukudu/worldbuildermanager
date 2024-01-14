@@ -59,8 +59,6 @@
         if (response1.ok) {
             const data = await response1.json();
             selectedworld = data;
-            console.log('SELECTED WORLD FETCHED!')
-            console.log('Response:', data);
         }
 
         
@@ -69,7 +67,6 @@
         if (response.ok) {
             const data = await response.json();
             selectedcharacter = data;
-            console.log('Response:', data);
         }
         
         selectname = selectedcharacter.name;
@@ -85,29 +82,22 @@
             
             if(response.ok) {
                 const responseData = await response.json();
-                console.log(responseData);
-                console.log(`${entitiesVar[i]} FETCHED!`);
 
-                console.log('EntityGrab:', responseData, `${entities[i]}`);
                 
                 switch(entitiesVar[i]) {
                     case "nationality": 
                         selectnationality = responseData[0].name;
                 
-                        console.log (selectnationality);
                         break;
                     case "ethnicity":
                         selectethnicity = responseData[0].name;
         
-                        console.log (selectethnicity);
                         break;
                     case "gender":
                         selectgender = responseData[0].name;
-                        console.log (selectgender);
                         break;
                     case "species":
                         selectspecies = responseData[0].name;
-                        console.log (selectspecies);
                         break;                        
                 }
             }
@@ -119,16 +109,12 @@
             if (response2.ok) {
                 const data = await response2.json();
                 allEthnicities = data;
-                console.log(`ETHNICITIES FETCHED!`)
-                console.log('Response:', data);
             }
         const response3 = await fetch(`http://localhost:3000/api/nationality/grab/${selectedworld._id}`);
             
             if (response3.ok) {
                 const data = await response3.json();
                 allNationailities = data;
-                console.log(`NATIONALITIES FETCHED!`)
-                console.log('Response:', data);
             }
 
         const response4 = await fetch(`http://localhost:3000/api/gender/`);
@@ -136,8 +122,6 @@
             if (response4.ok) {
                 const data = await response4.json();
                 allGenders = data;
-                console.log(`GENDERS FETCHED!`)
-                console.log('Response:', data);
             }
 
         const response7 = await fetch(`http://localhost:3000/api/species/grab/${selectedworld._id}`);
@@ -145,7 +129,6 @@
             if (response7.ok) {
                 const data = await response7.json();
                 allSpecies = data;
-                console.log(`SPECIES FETCHED!`)
             }
           
             
@@ -154,7 +137,6 @@
     const ShowForm = () => {
 
         showForm = !showForm;
-        console.log(showForm, `Confirmed`);
 
     };
 
@@ -163,7 +145,6 @@
             confirm = answer;
             showForm = !showForm;
         } else {
-            console.log('Invailid Input', confirm);
         };
     };
 
@@ -171,7 +152,6 @@
         while(showForm){
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-        console.log("Form Closed", confirm)
     };
 
     async function handleSubmit() {
@@ -230,19 +210,15 @@
                             switch(entitiesVar[i]) {
                                 case "nationality":
                                     nationality = responseData._id;
-                                    console.log(nationality);
                                     break;
                                 case "ethnicity":
                                     ethnicity = responseData._id;
-                                    console.log(ethnicity);
                                     break;
                                 case "gender":
                                     gender = responseData._id;
-                                    console.log(gender);
                                     break;
                                 case "species":
                                     species = responseData._id;
-                                    console.log(species);
                                     break;
                             }
                         } else {
@@ -277,7 +253,6 @@
                     };
     
                     
-                console.log('Character in Queue', character);
     
                 dispatch('UpdateCharacter', character);
             } else {
@@ -285,7 +260,6 @@
             }
 
         } else {
-            console.log("Submit not confirmed")
             confirm = "";
         }
         
@@ -295,9 +269,7 @@
     async function handleCancel() {
 
         message = "YOU WANT TO CANCEL?"
-        console.log("Message", message);
         ShowForm();
-        console.log("Form:", showForm);
 
         await waitForConfirm();
 
@@ -306,7 +278,6 @@
             confirm = "";
 
         } else {
-            console.log("Cancel not confirmed");
             confirm = "";
         }
     

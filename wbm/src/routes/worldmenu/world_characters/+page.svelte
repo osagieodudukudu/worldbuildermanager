@@ -74,8 +74,6 @@
         if (response.ok) {
             const data = await response.json();
             selectedworld = data;
-            console.log('SELECTED WORLD FETCHED!');
-            console.log('Response:', data);
         }
 
         const response2 = await fetch(`http://localhost:3000/api/characters/grab/${selectedworld._id}`);
@@ -83,8 +81,6 @@
         if (response2.ok) {
             const data = await response2.json();
             characters = data;
-            console.log('CHARACTERS OF WORLD FETCHED!');
-            console.log('Response:', data);
         }
 
     });
@@ -92,21 +88,18 @@
     const ShowForm = () => {
 
         showForm = !showForm;
-        console.log(showForm, `Confirmed`)
 
     };
 
     const ShowAdd = () => {
 
         showAdd = !showAdd;
-        console.log(showAdd, `Add made it through`)
         
     };
     
     const ShowEdit = (e) => {
         handleSelect(e);
         showEdit = !showEdit;
-        console.log(showEdit, `Edit made it through`)
     };
 
     function setConfirm(answer) {
@@ -114,7 +107,7 @@
             confirm = answer;
             showForm = !showForm;
         } else {
-            console.log('Invailid Input', confirm);
+            confirm = "N";
         };
     };
 
@@ -122,7 +115,6 @@
         while(showForm){
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-        console.log("Form Closed", confirm)
     };
     
     async function handleSelect(object){
@@ -137,8 +129,6 @@
 
         if (response.ok) {
             const selectedcharacter = await response.json();
-            console.log('SELECTED CHARACTER FETCHED!');
-            console.log('Response:', selectedcharacter.name);
 
             return true;
         } 
@@ -151,7 +141,6 @@
     
     const addCharacter = async(e) => {
         
-        console.log(e.detail);
         const newCharacter = e.detail;
         
         fetch('http://localhost:3000/api/characters/add', {
@@ -175,7 +164,6 @@
         })
         .then((addedCharacter) => {
             
-            console.log('Added Character:', addedCharacter);
             characters = [ ...characters, addedCharacter];
             
             showAdd = !showAdd;
@@ -183,13 +171,6 @@
             handleSelect(addedCharacter);
             selectedID = addedCharacter._id;
             
-        })
-        .then((selectionResult) => {
-            if (selectionResult) {
-                console.log('Character selected successfully.');
-            } else {
-                console.log('Failed to select character.');
-            }
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -211,8 +192,6 @@
             
             if(response.ok) {
                 const responseData = await response.json();
-                console.log('EntityGrab:', responseData, `${entities[i]}`);
-                
                 switch(entitiesVar[i]) {
                     case "nationality": 
                         nationality = responseData[0].name;
@@ -268,7 +247,6 @@
                 if (!selectResponse.ok) {
                     throw new Error(`Failed to select next character with ID ${object._id}`);
                 } else {
-                    console.log('Next Character selected successfully');
                     // Delete the selected character
                     const deleteResponse = await fetch(`http://localhost:3000/api/characters/${object._id}`, {
                         method: 'DELETE'
@@ -277,7 +255,6 @@
                     if (!deleteResponse.ok) {
                         throw new Error(`Failed to delete character with ID ${object._id}`);
                     } else {
-                        console.log('Character deleted successfully');
                         // Perform cleanup
                         const cleanupResponse = await fetch('http://localhost:3000/api/cleanup', {
                             method: 'DELETE'
@@ -286,7 +263,6 @@
                         if (!cleanupResponse.ok) {
                             throw new Error('Failed to perform cleanup');
                         }
-                        console.log('Cleanup completed successfully');
                     }
                 }
                 
@@ -294,7 +270,6 @@
                 const updatedCharactersResponse = await fetch('http://localhost:3000/api/characters');
                 const updatedCharacters = await updatedCharactersResponse.json();
                 characters = updatedCharacters.reverse();
-                console.log(updatedCharacters);
 
                 name = "";
                 age = "";
@@ -317,7 +292,6 @@
 
     async function editCharacter(updatedCharacterData) {
         const objectId = updatedCharacterData._id;
-        console.log(updatedCharacterData.name, objectId);
         try {
             const response = await fetch(`http://localhost:3000/api/characters/${objectId}`, {
             method: 'PUT',
@@ -346,40 +320,31 @@
                     
                     if(response.ok) {
                         const responseData = await response.json();
-                        console.log(responseData);
-                        console.log(`${entitiesVar[i]} FETCHED!`);
 
-                        console.log('EntityGrab:', responseData, `${entities[i]}`);
                         
                         switch(entitiesVar[i]) {
                             case "nationality": 
                                 nationality = responseData[0].name;
                         
-                                console.log (nationality);
                                 break;
                             case "ethnicity":
                                 ethnicity = responseData[0].name;
                 
-                                console.log (ethnicity);
                                 break;
                             case "gender":
                                 gender = responseData[0].name;
-                                console.log (gender);
                                 break;
                             case "species":
                                 species = responseData[0].name;
-                                console.log (species);
                                 break;                        
                         }
                     }
 
                 }
 
-                console.log('Character updated:', updatedCharacter);
 
                 const updatedCharactersResponse = await fetch('http://localhost:3000/api/characters');
                 const updatedCharacters = await updatedCharactersResponse.json();
-                console.log('Reloaded Character List:', updatedCharacters, characters);
                 characters = updatedCharacters.reverse();
             } 
             else {
@@ -394,7 +359,6 @@
     
     const handleEditCharacter = (e) => {
         editCharacter(e.detail);
-        console.log('Edit Character clicked');
         showEdit = !showEdit;
     };
     
@@ -417,23 +381,40 @@
             reader.readAsDataURL(file);
 
         } else {
-            window.alert("No Character Selected")
+            console.error("No Character Selected");
         };
     };
 
-    function handleFileRemove(){
-        image = "";
+    async function handleFileRemove(){
+        message = "YOU WANT TO REMOVE YOUR IMAGE?"
+        ShowForm();
 
-        const character = {
-            image
-        };
+        await waitForConfirm();
 
-        editCharacter(character);
+        if ( confirm=="Y" ){
+        
+            if (selectedID) {
+                image = "";
+        
+                const character = {
+                    _id: selectedID,
+                    image
+                };
+        
+                editCharacter(character);
+                
+            } else {
+                console.error("No Character Selected");
+            };
+            confirm = "";
+            
+        } else {
+            confirm = "";
+        }
 
     };
 
     async function refreshData(object) {
-        console.log('New Character Selction')
 
         let finished = handleSelect(object);
         
@@ -449,7 +430,6 @@
             for (let i = 0; i < entities.length; i++) {
 
                 if (entities[i] != (undefined || "")){
-                    console.log("Has an ID", `${entitiesVar[i]}`, `${entities[i]}`);
                     const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
     
                     if(response.ok) {
@@ -458,42 +438,33 @@
                         switch(entitiesVar[i]) {
                             case "nationality":
                                 nationality = responseData[0].name;
-                                console.log(nationality);
                                 break;
                             case "ethnicity":
                                 ethnicity = responseData[0].name;
-                                console.log(ethnicity);
                                 break;
                             case "gender":
                                 gender = responseData[0].name;
-                                console.log(gender);
                                 break;
                             case "species":
                                 species = responseData[0].name;
-                                console.log(species);
                                 break;
                         }
     
                     }
 
                 } else {
-                    console.log("Has no ID", `${entitiesVar[i]}`,`${entities[i]}`);
                     switch(entitiesVar[i]) {
                         case "nationality":
                             nationality = "";
-                            console.log(nationality);
                             break;
                         case "ethnicity":
                             ethnicity = "";
-                            console.log(ethnicity);
                             break;
                         case "gender":
                             gender = "";
-                            console.log(gender);
                             break;
                         case "species":
                             species = "";
-                            console.log(species);
                             break;
                     }
 
@@ -549,21 +520,22 @@
         </div>   
     </div>
     
-    <div class="box" >
+    <div class="box" id="imageslot">
         <br><h2>CLICK ON THE IMAGE BELOW TO <br>UPLOAD THE IMAGE OF YOUR PLACE<br><br>RECOMMENDED SIZE: (1080 x 1920)</h2>
         <br><br>
         <div id="image-box">
-            
             <label for="file-upload" class="custom-file-upload">
                 <input id="file-upload" type="file" accept="image/*" on:change={handleFileChange}/>
                 {#if image}
-                    <img src={image} alt='' id="image">
+                <img src={image} alt='' id="image">
                 {:else}
-                    <img src="../src/assets/blank image_vert.png" alt='' id="image">
+                <img src="../src/assets/blank image_vert.png" alt='' id="image">
                 {/if}
-                
             </label>
         </div>
+        <br>
+        <button title="Remove Image" class="remove" on:click={() => handleFileRemove()}>REMOVE IMAGE</button>
+
     </div>
 
     <div class="box" id="description">
@@ -659,6 +631,25 @@
 </body>
 
 <style>
+    #imageslot {
+        display: flex;           
+        flex-direction: column;  
+    }
+    .remove {
+        font-size: medium;
+        color: white;
+        padding: 10px;
+        border-radius: 20px;
+        background-color: rgb(213, 69, 0);
+        
+    }
+
+    .remove:hover {
+        background-color: rgb(213, 0, 0);
+        box-shadow: 0 0 10px rgba(115, 62, 62, 0.322);
+        transition-duration: 200ms;
+        transition-timing-function: ease-in-out;
+    }
     .character {
         display: grid;
         grid-template-columns: 1fr 10fr 1fr;
@@ -824,6 +815,7 @@
         padding: 20px;
         max-height: 900px;
     }
+
     .text-box{
         background-color: white;
         height: 670px;

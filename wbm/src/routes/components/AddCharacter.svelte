@@ -61,8 +61,6 @@
             if (response.ok) {
                 const data = await response.json();
                 selectedworld = data;
-                console.log('SELECTED WORLD FETCHED!')
-                console.log('Response:', data);
             }
 
         const response2 = await fetch(`http://localhost:3000/api/ethnicity/grab/${selectedworld._id}`);
@@ -70,25 +68,19 @@
             if (response2.ok) {
                 const data = await response2.json();
                 allEthnicities = data;
-                console.log(`ETHNICITIES FETCHED!`)
-                console.log('Response:', data);
             }
         const response3 = await fetch(`http://localhost:3000/api/nationality/grab/${selectedworld._id}`);
             
             if (response3.ok) {
                 const data = await response3.json();
                 allNationailities = data;
-                console.log(`NATIONALITIES FETCHED!`)
-                console.log('Response:', data);
             }
 
-        const response4 = await fetch(`http://localhost:3000/api/gender/`);
+        const response4 = await fetch(`http://localhost:3000/api/gender/grab/${selectedworld._id}`);
             
             if (response4.ok) {
                 const data = await response4.json();
                 allGenders = data;
-                console.log(`GENDERS FETCHED!`)
-                console.log('Response:', data);
             }
 
         const response7 = await fetch(`http://localhost:3000/api/species/grab/${selectedworld._id}`);
@@ -96,14 +88,12 @@
             if (response7.ok) {
                 const data = await response7.json();
                 allSpecies = data;
-                console.log(`SPECIES FETCHED!`)
             }
     });
 
     const ShowForm = () => {
 
         showForm = !showForm;
-        console.log(showForm, `Confirmed`);
 
     };
 
@@ -112,7 +102,7 @@
             confirm = answer;
             showForm = !showForm;
         } else {
-            console.log('Invailid Input', confirm);
+            confirm = "N";
         };
     };
 
@@ -120,7 +110,6 @@
         while(showForm){
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-        console.log("Form Closed", confirm)
     };
 
     async function handleSubmit() {
@@ -186,44 +175,32 @@
                     }
                 
             }
-
-            if (selectname) { 
-                
-                const character = {
-                    world_id: selectedworld._id,
-                    name: selectname,
-                    age: selectage,
-                    ethnicity,
-                    nationality,
-                    gender,
-                    species,
-                    bio: selectbio,
-                    image,
-                    isSelected
-                };
-        
-                        
-                console.log('New Character in Queue', character);
-    
-                dispatch('AddCharactertoList', character);
-                
-            } else {
-                window.alert("Give your character a name")
-            }
+            
+            const character = {
+                world_id: selectedworld._id,
+                name: selectname,
+                age: selectage,
+                ethnicity,
+                nationality,
+                gender,
+                species,
+                bio: selectbio,
+                image,
+                isSelected
+            };
+            
+            dispatch('AddCharactertoList', character);
 
         } else {
-            console.log("Submit not confirmed");
             confirm = "";
         }
 
     }
     
-
     async function handleCancel() {
         message = "YOU WANT TO CANCEL?"
-        console.log("Message", message);
+        
         ShowForm();
-        console.log("Form:", showForm);
 
         await waitForConfirm();
 
@@ -232,7 +209,6 @@
             confirm = "";
 
         } else {
-            console.log("Cancel not confirmed");
             confirm = "";
         }
     } 

@@ -286,7 +286,6 @@ app.delete('/api/cleanup', async (req,res) => {
 
       if(!isReferenced) {
         await subentityModels[i].findByIdAndDelete( subentityId );
-        console.log('Unused sub entity removed');
       }
     }
 
@@ -428,7 +427,6 @@ app.put('/api/:entity/select/:id', async (req, res) => {
       { new: true }
     );
 
-    console.log(updatedEntity);
 
     if (!updatedEntity) {
       return res.status(404).json({ error: 'Entity not found' });

@@ -3,9 +3,14 @@
     
     import EditWorld from '../components/EditWorld.svelte';
     import Modal from '../components/Modal.svelte';
+    import Form from "../components/Form.svelte";
+    import Confirm from "../components/Confirm.svelte";
     import Footer from "../components/Footer.svelte";
 
+    let showEdit = false;
     let showForm = false;
+    let confirm = "";
+    let message = "";
 
     /**
      * @type any
@@ -20,15 +25,39 @@
         if (response.ok) {
             const data = await response.json();
             selectedworld = data;
-            console.log('SELECTED WORLD FETCHED!')
-            console.log('Response:', data);
         }
     });
+
+    const ShowAdd = () => {
     
+        showAdd = !showAdd;
+    
+    };
+    
+    const ShowForm = () => {
+    
+        showForm = !showForm;
+    
+    };
+    
+    function setConfirm(answer) {
+        if (answer=="Y" || answer=="N"){
+            confirm = answer;
+            showForm = !showForm;
+        } else {
+            confirm = "N";
+        };
+    };
+    
+    async function waitForConfirm() {
+        while(showForm){
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    };
+
     //Updates World to Backend
     async function editWorld(updatedWorldData) {
         const objectId = selectedworld._id;
-        console.log(objectId);
         try {
             const response = await fetch(`http://localhost:3000/api/worlds/${objectId}`, {
             method: 'PUT',
@@ -41,7 +70,6 @@
             if (response.ok) {
             const updatedWorld = await response.json();
             selectedworld = updatedWorld;
-            console.log('World updated:', updatedWorld);
             } 
             else {
             console.error('Error editing world:', response.status);
@@ -53,18 +81,30 @@
         }
     }
 
-    function ShowForm(){
-        showForm = !showForm;
+    function ShowEdit(){
+        showEdit = !showEdit;
     }
 
-    function handleMapRemove(){
-        const map = "";
+    async function handleMapRemove(){
+        message = "YOU WANT TO REMOVE YOUR MAP?"
+        
+        ShowForm();
 
-        const world = {
-            map
-        };
+        await waitForConfirm();
+        
+        if (confirm == "Y") {
+            const map = "";
+    
+            const world = {
+                map
+            };
+    
+            editWorld(world);
+            confirm = "";
 
-        editWorld(world);
+        } else {
+            confirm = "";
+        }
 
     }
 
@@ -88,22 +128,25 @@
     // Takes event info and puts it in the edit world function
     const handleEditClick = (e) => {
         editWorld(e.detail);
-        console.log('Edit button clicked');
-        showForm = !showForm;
+        showEdit = !showEdit;
     }
 
 </script>
 
-<Modal {showForm}>
-    <EditWorld on:UpdateWorldtoList={handleEditClick} on:Cancel={ShowForm}/>
+<Modal {showEdit}>
+    <EditWorld on:UpdateWorldtoList={handleEditClick} on:Cancel={ShowEdit}/>
 </Modal>
 
+<Form {showForm}>
+    <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
+</Form>
 
-<div class:hidden={showForm}>
+
+<div class:hidden={showEdit}>
     <div class="wrapper">
         <div class="name">
             <button title="Go Back to All Worlds"><a href="/"><img src="src/assets/back_arrow.png" alt="" id="arrow"></a></button>
-            <button class="b" on:click={ShowForm}>
+            <button class="b" on:click={ShowEdit}>
                 <img title="Edit World" class="edit-button" src="src/assets/edit.png" alt="">
                 <p class="edit">EDIT WORLD</p>
             </button>
@@ -214,9 +257,7 @@
     .title:hover {
         cursor: default;
     }
-
     
-
     .edit {
         color: rgb(213, 69, 0);
         font-size: small;

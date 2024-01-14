@@ -1,7 +1,13 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
+    import Form from "../components/Form.svelte";
+    import Confirm from "../components/Confirm.svelte";
 
     let dispatch = createEventDispatcher();
+
+    let showForm = false;
+    let confirm = "";
+    let message = "";
     
     /**
      * @type {string}
@@ -43,37 +49,69 @@
         profile = selectedworld.profile;
     });
 
-    function handleSubmit() {
-    submitting = true; 
-
-    if (desc === undefined) {
-        desc = '';
-    }
-    if (profile === undefined) {
-        profile = '';
-    }
-
-    if (name) {
-        const fileInput = document.querySelector('input[type="file"]');
-        const file = fileInput.files[0];
-
-        if (!file || (file && file.size <= 2 * 1024 * 1024 )) {
-            const world = {
-            name,
-            desc,
-            profile,
-            };
-
-            dispatch('UpdateWorldtoList', world);
-        } 
-        
-        else {
-            window.alert('File size exceeds 2MB limit');
-            fileInput.value = selectedworld.profile;
-            profile = selectedworld.profile; 
-            submitting = false;
+    const ShowForm = () => {
+    
+        showForm = !showForm;
+    
+    };
+    
+    function setConfirm(answer) {
+        if (answer=="Y" || answer=="N"){
+            confirm = answer;
+            showForm = !showForm;
+        } else {
+            confirm = "N";
+        };
+    };
+    
+    async function waitForConfirm() {
+        while(showForm){
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
-    }
+    };
+
+    async function handleSubmit() {
+        message = "YOU WANT TO EDIT YOUR WORLD?"
+        
+        ShowForm();
+
+        await waitForConfirm();
+        
+        if (confirm == "Y") {
+            submitting = true; 
+
+            if (desc === undefined) {
+                desc = '';
+            }
+            if (profile === undefined) {
+                profile = '';
+            }
+
+            if (name) {
+                const fileInput = document.querySelector('input[type="file"]');
+                const file = fileInput.files[0];
+
+                if (!file || (file && file.size <= 2 * 1024 * 1024 )) {
+                    const world = {
+                    name,
+                    desc,
+                    profile,
+                    };
+
+                    dispatch('UpdateWorldtoList', world);
+                } 
+                
+                else {
+                    window.alert('File size exceeds 2MB limit');
+                    fileInput.value = selectedworld.profile;
+                    profile = selectedworld.profile; 
+                    submitting = false;
+                }
+            }
+            confirm = "";
+        } else {
+            confirm = "";
+        }
   }
 
     function handleFileChange(event) {
@@ -88,14 +126,29 @@
         reader.readAsDataURL(file);
     }
 
-    function handleCancel() {
+    async function handleCancel() {
+        message = "YOU WANT TO CANCEL?"
+        
+        ShowForm();
 
-        dispatch('Cancel');
+        await waitForConfirm();
+        
+        if (confirm == "Y") {
+
+            dispatch('Cancel');
+            confirm = "";
+            
+        } else {
+            confirm = "";
+        }
 
     }
 
 </script>
 
+<Form {showForm}>
+    <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
+</Form>
 
 <form on:submit|preventDefault={handleSubmit}>
     <h3>EDIT YOUR WORLD!</h3>
@@ -113,8 +166,9 @@
     <br><br>
     <button>UPDATE YOUR WORLD</button>
   
-    <br />
-    <button on:click={handleCancel}>CANCEL EDIT</button>
+    <br>
+    <br>
+    <button type="button" on:click={handleCancel}>CANCEL EDIT</button>
 </form>
 
 <style>
@@ -151,5 +205,10 @@
         padding: 10px;
         line-height: 2;
         border-radius: 20px;        
+    }
+    button {
+        cursor: pointer;
+        border-radius: 20px;
+        padding: 15px;
     }
 </style>
