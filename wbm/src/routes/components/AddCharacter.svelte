@@ -11,8 +11,6 @@
     let allEthnicities = [];
     let allNationailities = [];
     let allGenders = [];
-    let allSkills = [];
-    let allAttributes = [];
     let allSpecies = [];
 
     let selectname;
@@ -21,8 +19,6 @@
     let selectnationality;
     let selectethnicity;
     let selectgender;
-    let selectskills;
-    let selectattributes;
     let selectspecies;
 
     let showForm = false;
@@ -49,15 +45,7 @@
     /**
      * @type {String}
      */
-    let gender; 
-    /**
-     * @type {String}
-     */
-    let skills;
-    /**
-     * @type {String}
-     */
-    let attributes;
+    let gender;
      /**
      * @type {String}
      */
@@ -101,23 +89,6 @@
                 allGenders = data;
                 console.log(`GENDERS FETCHED!`)
                 console.log('Response:', data);
-            }
-        
-        const response5 = await fetch(`http://localhost:3000/api/skills/grab/${selectedworld._id}`);
-            
-            if (response5.ok) {
-                const data = await response5.json();
-                allSkills = data;
-                console.log(`SKILLS FETCHED!`)
-                console.log('Response:', data);
-            }  
-        
-        const response6 = await fetch(`http://localhost:3000/api/attributes/grab/${selectedworld._id}`);
-            
-            if (response6.ok) {
-                const data = await response6.json();
-                allAttributes = data;
-                console.log(`ATTRIBUTES FETCHED!`)
             }
 
         const response7 = await fetch(`http://localhost:3000/api/species/grab/${selectedworld._id}`);
@@ -166,8 +137,8 @@
             if (!selectbio) { selectbio = ''; };
             isSelected = false;
     
-            let entitiesName    =   [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
-            let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+            let entitiesName    =   [selectnationality, selectethnicity, selectgender, selectspecies];
+            let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
     
             for (let i = 0; i < entitiesName.length; i++) {
 
@@ -201,12 +172,6 @@
                                 case "gender":
                                     gender = responseData._id;
                                     break;
-                                case "skills":
-                                    skills = responseData._id;
-                                    break;
-                                case "attributes":
-                                    attributes = responseData._id;
-                                    break;
                                 case "species":
                                     species = responseData._id;
                                     break;
@@ -231,8 +196,6 @@
                     ethnicity,
                     nationality,
                     gender,
-                    skills,
-                    attributes,
                     species,
                     bio: selectbio,
                     image,
@@ -297,10 +260,14 @@
         
         
         <br><br>
+        <br><br>
+        <br><br>
         <h4>Age</h4>
         <input type="number" class="age" bind:value={selectage} required={submitting} min="0">
 
         <br><br>
+    </div>
+    <div>
         <h4>Nationality</h4>
         <input type="text" class="nationality" bind:value={selectnationality}>
         <h4 class="note"> or Pick from a Selection</h4>
@@ -322,8 +289,6 @@
             {/each}
         </select>
 
-    </div>
-    <div>
         <h4>Gender</h4>
         <input type="text" class="gender" bind:value={selectgender}>
         <h4 class="note"> or Pick from a Selection</h4>
@@ -342,28 +307,6 @@
             <option value=""></option>
             {#each allSpecies as species}
             <option value={species.name}>{species.name}</option>
-            {/each}
-        </select>
-        
-        <br><br>
-        <h4>Skills</h4>
-        <input type="text" class="skills" bind:value={selectskills}>
-        <h4 class="note"> or Pick from a Selection</h4>
-        <select class="skills" bind:value={selectskills}>
-            <option value=""></option>
-            {#each allSkills as skills}
-            <option value={skills.name}>{skills.name}</option>
-            {/each}
-        </select>
-        
-        <br><br>
-        <h4>Attributes</h4>
-        <input type="text" class="attributes" bind:value={selectattributes}>
-        <h4 class="note"> or Pick from a Selection</h4>
-        <select class="attributes" bind:value={selectattributes}>
-            <option value=""></option>
-            {#each allAttributes as attrib}
-            <option value={attrib.name}>{attrib.name}</option>
             {/each}
         </select>
 
@@ -405,7 +348,7 @@
         text-transform: uppercase;
     }
     
-    .name, .ethnicity, .nationality, .gender, .skills, .attributes, .species{
+    .name, .ethnicity, .nationality, .gender, .species{
         width: 400px;
         height: 30px;
         border-radius: 20px;        

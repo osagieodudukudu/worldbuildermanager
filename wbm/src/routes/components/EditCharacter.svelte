@@ -12,8 +12,6 @@
     let allEthnicities = [];
     let allNationailities = [];
     let allGenders = [];
-    let allSkills = [];
-    let allAttributes = [];
     let allSpecies = [];
 
     let selectname;
@@ -22,8 +20,6 @@
     let selectnationality;
     let selectethnicity;
     let selectgender;
-    let selectskills;
-    let selectattributes;
     let selectspecies;
 
     let showForm = false;
@@ -46,15 +42,7 @@
     /**
      * @type {String}
      */
-    let gender; 
-    /**
-     * @type {String}
-     */
-    let skills;
-    /**
-     * @type {String}
-     */
-    let attributes;
+    let gender;
      /**
      * @type {String}
      */
@@ -88,8 +76,8 @@
         selectbio = selectedcharacter.bio;
         selectage = selectedcharacter.age;
         
-        let entities    =   [selectedcharacter.nationality, selectedcharacter.ethnicity, selectedcharacter.gender, selectedcharacter.skills, selectedcharacter.attributes, selectedcharacter.species];
-        let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+        let entities    =   [selectedcharacter.nationality, selectedcharacter.ethnicity, selectedcharacter.gender, selectedcharacter.species];
+        let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
         
         for (let i = 0; i < entities.length; i++) {
             
@@ -116,15 +104,6 @@
                     case "gender":
                         selectgender = responseData[0].name;
                         console.log (selectgender);
-                        break;
-                    case "skills":  
-                        selectskills = responseData[0].name;
-                        console.log (selectskills);
-                        break;
-                    case "attributes":
-                        selectattributes = responseData[0].name;
-            
-                        console.log (selectattributes);
                         break;
                     case "species":
                         selectspecies = responseData[0].name;
@@ -159,23 +138,6 @@
                 allGenders = data;
                 console.log(`GENDERS FETCHED!`)
                 console.log('Response:', data);
-            }
-        
-        const response5 = await fetch(`http://localhost:3000/api/skills/grab/${selectedworld._id}`);
-            
-            if (response5.ok) {
-                const data = await response5.json();
-                allSkills = data;
-                console.log(`SKILLS FETCHED!`)
-                console.log('Response:', data);
-            }  
-        
-        const response6 = await fetch(`http://localhost:3000/api/attributes/grab/${selectedworld._id}`);
-            
-            if (response6.ok) {
-                const data = await response6.json();
-                allAttributes = data;
-                console.log(`ATTRIBUTES FETCHED!`)
             }
 
         const response7 = await fetch(`http://localhost:3000/api/species/grab/${selectedworld._id}`);
@@ -225,9 +187,9 @@
             if (!selectbio) { selectbio = '' }; 
             isSelected = false;
     
-            let entities    =   [selectedcharacter.nationality, selectedcharacter.ethnicity, selectedcharacter.gender, selectedcharacter.skills, selectedcharacter.attributes, selectedcharacter.species];
-            let entitiesName = [selectnationality, selectethnicity, selectgender, selectskills, selectattributes, selectspecies];
-            let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+            let entities    =   [selectedcharacter.nationality, selectedcharacter.ethnicity, selectedcharacter.gender, selectedcharacter.species];
+            let entitiesName = [selectnationality, selectethnicity, selectgender, selectspecies];
+            let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
     
             for (let i = 0; i < entitiesName.length; i++) {
                 if (entitiesName[i] && !(entitiesName[i].trim().length === 0)){
@@ -278,14 +240,6 @@
                                     gender = responseData._id;
                                     console.log(gender);
                                     break;
-                                case "skills":
-                                    skills = responseData._id;
-                                    console.log(skills);
-                                    break;
-                                case "attributes":
-                                    attributes = responseData._id;
-                                    console.log(attributes);
-                                    break;
                                 case "species":
                                     species = responseData._id;
                                     console.log(species);
@@ -317,8 +271,6 @@
                         ethnicity,
                         nationality,
                         gender,
-                        skills,
-                        attributes,
                         species,
                         bio: selectbio,
                         isSelected
@@ -429,28 +381,6 @@
             <option value={species.name}>{species.name}</option>
             {/each}
         </select>
-        
-        <br><br>
-        <h4>Skills</h4>
-        <input type="text" class="skills" bind:value={selectskills}>
-        <h4 class="note"> or Pick from a Selection</h4>
-        <select class="skills" bind:value={selectskills}>
-            <option value=""></option>
-            {#each allSkills as skills}
-            <option value={skills.name}>{skills.name}</option>
-            {/each}
-        </select>
-        
-        <br><br>
-        <h4>Attributes</h4>
-        <input type="text" class="attributes" bind:value={selectattributes}>
-        <h4 class="note"> or Pick from a Selection</h4>
-        <select class="attributes" bind:value={selectattributes}>
-            <option value=""></option>
-            {#each allAttributes as attrib}
-            <option value={attrib.name}>{attrib.name}</option>
-            {/each}
-        </select>
 
     </div>
     
@@ -490,7 +420,7 @@
         text-transform: uppercase;
     }
     
-    .name, .ethnicity, .nationality, .gender, .skills, .attributes, .species{
+    .name, .ethnicity, .nationality, .gender, .species{
         width: 400px;
         height: 30px;
         border-radius: 20px;        

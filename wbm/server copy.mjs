@@ -49,21 +49,13 @@ const charactersSchema = new Schema ({
     type: mongoose.Schema.Types.ObjectId,
     ref:'ethnicitySchema'
   }],
-  nationality: {
+  nationality: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'nationalitySchema'
-  },
-  gender: {
+  }],
+  gender: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'genderSchema'
-  },
-  skills: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:'skillsSchema'
-  }],
-  attributes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:'attributesSchema'
   }],
   species: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -81,10 +73,10 @@ const placesSchema = new Schema({
   },
   name: String,
   population: Number,
-  attractions: {
+  attractions: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'attractionsSchema'
-  },
+  }],
   notable_characters: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'charactersSchema'
@@ -100,14 +92,14 @@ const itemsSchema = new Schema({
     ref: 'worldSchema'
   },
   name: String,
-  owner: {
+  owner: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'charactersSchema'
-  },
-  category: {
+  }],
+  category: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'categorySchema'
-  },
+  }],
   value: Number,
   quantity: Number,
   desc: String
@@ -120,10 +112,10 @@ const eventsSchema = new Schema({
     ref: 'worldSchema'
   },
   name: String,
-  location: {
+  location: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'placesSchema'
-  },
+  }],
   date: Date,
   notable_characters: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -135,20 +127,6 @@ const eventsSchema = new Schema({
 
 //CHARACTER SCHEMAS
 
-const attributesSchema = new Schema({
-  world_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'worldSchema'
-  },
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: true,
-  }
-
-});
-
 const ethnicitySchema = new Schema ({
   world_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -159,10 +137,6 @@ const ethnicitySchema = new Schema ({
     required: true,
     trim: true,
     unique: true,
-  },
-  origin: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'placesSchema'
   }
 });
 
@@ -176,10 +150,6 @@ const nationalitySchema = new Schema({
     required: true,
     trim: true,
     unique: true,
-  },
-  origin: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'placesSchema'
   }
 });
 
@@ -195,19 +165,6 @@ const genderSchema = new Schema ({
     unique: true,
   }
 });
-
-const skillsSchema = new Schema ({
-  world_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'worldSchema'
-  },
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: true,
-  }
-})
 
 const speciesSchema = new Schema ({
   world_id: {
@@ -232,8 +189,7 @@ const attractionsSchema = new Schema({
     type: String,
     required: true,
     trim: true,
-  },
-  desc: String,
+  }
 });
 
 //ITEM SCHEMA
@@ -257,8 +213,6 @@ const items = mongoose.model('items', itemsSchema);
 const events = mongoose.model('events', eventsSchema);
 
 //Character Collections
-const skills = mongoose.model('skills', skillsSchema);
-const attributes = mongoose.model('attributes', attributesSchema);
 const ethnicity = mongoose.model('ethnicity', ethnicitySchema);
 const nationality = mongoose.model('nationality', nationalitySchema);
 const gender = mongoose.model('gender', genderSchema);
@@ -277,8 +231,6 @@ const entityModels = {
   places: places,
   items: items,
   events: events,
-  skills: skills,
-  attributes: attributes,
   nationality: nationality,
   ethnicity: ethnicity,
   gender: gender,
@@ -310,7 +262,7 @@ app.delete('/api/cleanup', async (req,res) => {
   let isReferenced;
   
   try {
-  const subentityModels = [nationality, ethnicity, gender, skills, attributes, species];
+  const subentityModels = [nationality, ethnicity, gender, species];
 
     for (let i = 0; i < subentityModels.length; i++) {
       const allSubEntities = await subentityModels[i].find().exec();
@@ -327,12 +279,6 @@ app.delete('/api/cleanup', async (req,res) => {
             break;
           case gender:
             isReferenced = await characters.findOne({ gender : subentityId }).exec();
-            break;
-          case skills:
-            isReferenced = await characters.findOne({ skills : subentityId }).exec();
-            break;
-          case attributes:
-            isReferenced = await characters.findOne({ attributes : subentityId }).exec();
             break;
           case species:
             isReferenced = await characters.findOne({ species : subentityId }).exec();

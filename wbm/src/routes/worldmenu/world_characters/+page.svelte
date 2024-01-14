@@ -60,14 +60,6 @@
     /**
      * @type {any}
      */
-    let skills;
-    /**
-     * @type {any}
-     */
-    let attributes;
-    /**
-     * @type {any}
-     */
     let bio;
     /**
      * @type {any}
@@ -228,8 +220,8 @@
         bio = newCharacter.bio;
         image = newCharacter.image;
 
-        let entities    =   [newCharacter.nationality, newCharacter.ethnicity, newCharacter.gender, newCharacter.skills, newCharacter.attributes, newCharacter.species];
-        let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+        let entities    =   [newCharacter.nationality, newCharacter.ethnicity, newCharacter.species];
+        let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
         
         for (let i = 0; i < entities.length; i++) {
             
@@ -249,12 +241,6 @@
                     case "gender":
                         gender = responseData[0].name;
                         break;
-                    case "skills":  
-                        skills = responseData[0].name;
-                        break;
-                    case "attributes":
-                        attributes = responseData[0].name;
-                        break;
                     case "species":
                         species = responseData[0].name;
                         break;                        
@@ -269,12 +255,6 @@
                         break;
                     case "gender":
                         gender = "";
-                        break;
-                    case "skills":  
-                        skills = "";
-                        break;
-                    case "attributes":
-                        attributes = "";
                         break;
                     case "species":
                         species = "";
@@ -365,8 +345,8 @@
                 age = updatedCharacter.age;
                 bio = updatedCharacter.bio;
                 
-                let entities    =   [updatedCharacter.nationality, updatedCharacter.ethnicity, updatedCharacter.gender, updatedCharacter.skills, selectedcharacter.attributes, selectedcharacter.species];
-                let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+                let entities    =   [updatedCharacter.nationality, updatedCharacter.ethnicity, updatedCharacter.gender, selectedcharacter.species];
+                let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
                 
 
                 for (let i = 0; i < entities.length; i++) {
@@ -394,15 +374,6 @@
                             case "gender":
                                 gender = responseData[0].name;
                                 console.log (gender);
-                                break;
-                            case "skills":  
-                                skills = responseData[0].name;
-                                console.log (skills);
-                                break;
-                            case "attributes":
-                                attributes = responseData[0].name;
-                    
-                                console.log (attributes);
                                 break;
                             case "species":
                                 species = responseData[0].name;
@@ -483,12 +454,13 @@
             bio = object.bio;
             image = object.image; 
 
-            let entities    =   [object.nationality, object.ethnicity, object.gender, object.skills, object.attributes, object.species];
-            let entitiesVar =   ["nationality", "ethnicity", "gender", "skills", "attributes", "species"];
+            let entities    =   [object.nationality, object.ethnicity, object.gender, object.species];
+            let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
 
             for (let i = 0; i < entities.length; i++) {
 
-                if (entities[i]){
+                if (entities[i] != (undefined || "")){
+                    console.log("Has an ID", `${entitiesVar[i]}`, `${entities[i]}`);
                     const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
     
                     if(response.ok) {
@@ -497,45 +469,42 @@
                         switch(entitiesVar[i]) {
                             case "nationality":
                                 nationality = responseData[0].name;
+                                console.log(nationality);
                                 break;
                             case "ethnicity":
                                 ethnicity = responseData[0].name;
+                                console.log(ethnicity);
                                 break;
                             case "gender":
                                 gender = responseData[0].name;
-                                break;
-                            case "skills":
-                                skills = responseData[0].name;
-                                break;
-                            case "attributes":
-                                attributes = responseData[0].name;
+                                console.log(gender);
                                 break;
                             case "species":
                                 species = responseData[0].name;
+                                console.log(species);
                                 break;
                         }
     
                     }
 
                 } else {
+                    console.log("Has no ID", `${entitiesVar[i]}`,`${entities[i]}`);
                     switch(entitiesVar[i]) {
                         case "nationality":
                             nationality = "";
+                            console.log(nationality);
                             break;
                         case "ethnicity":
                             ethnicity = "";
+                            console.log(ethnicity);
                             break;
                         case "gender":
                             gender = "";
-                            break;
-                        case "skills":
-                            skills = "";
-                            break;
-                        case "attributes":
-                            attributes = "";
+                            console.log(gender);
                             break;
                         case "species":
                             species = "";
+                            console.log(species);
                             break;
                     }
 
@@ -674,26 +643,6 @@
                     {#if species}
                     <span class="display">
                         {species}
-                    </span>  
-                    {:else}
-                        Unknown
-                    {/if}
-                </h3> 
-
-                <h3>SKILLS:
-                    {#if skills}
-                    <span class="display">
-                        {skills}
-                    </span>  
-                    {:else}
-                        Unknown
-                    {/if}
-                </h3> 
-
-                <h3>ATTRIBUTES:
-                    {#if attributes}
-                    <span class="display">
-                        {attributes}
                     </span>  
                     {:else}
                         Unknown
