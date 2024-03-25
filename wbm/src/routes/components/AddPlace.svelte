@@ -16,7 +16,7 @@
     let addedAttractions = [];
 
     let selectName;
-    let selectHistory;
+    let selectDescription;
     let selectPopulation;
     let selectAttractions = [];
     let selectNotableCharacters = [];
@@ -160,7 +160,7 @@
                     population: selectPopulation,
                     notable_characters: notableCharactersIds,
                     attractions: attractionIds,
-                    history: selectHistory,
+                    desc: selectDescription,
                     image,
                     isSelected
                 };
@@ -209,8 +209,8 @@
         <input type="text" class="name" bind:value={selectName} required={submitting}>
 
 
-        <h4>Give your place some history</h4>
-        <textarea class="description" bind:value={selectHistory}></textarea>
+        <h4>Give your place a description</h4>
+        <textarea class="description" bind:value={selectDescription}></textarea>
         
         
         <br><br>

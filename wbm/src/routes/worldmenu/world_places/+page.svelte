@@ -52,7 +52,7 @@
     /**
      * @type {any}
      */
-    let history;
+    let desc;
     /**
      * @type {any}
      */
@@ -172,7 +172,7 @@
         selectedID = newPlace.selectedID;
         name = newPlace.name;
         population = newPlace.population;
-        history = newPlace.history;
+        desc = newPlace.desc;
         image = newPlace.image;
 
         let entities    =   [newPlace.attractions, newPlace.notable_characters];
@@ -254,7 +254,7 @@
 
                 name = "";
                 population = "";
-                history = "";
+                desc = "";
                 image  = "";
                 attractions = "";
                 notable_characters = "";
@@ -287,7 +287,7 @@
                 selectedID = updatedPlace._id;
                 name = updatedPlace.name;
                 population = updatedPlace.population;
-                history = updatedPlace.history;
+                desc = updatedPlace.desc;
                 
                 let entities    =   [updatedPlace.attractions, updatedPlace.notable_characters];
                 let entitiesVar =   ["attractions", "notable_characters"];
@@ -386,37 +386,41 @@
     };
 
     async function refreshData(object) {
-
         let finished = handleSelect(object);
         
         if (finished) {
             name = object.name;
             population = object.population;
-            history = object.history;
+            desc = object.desc;
             image = object.image; 
 
             let entities    =   [object.attractions, object.notable_characters];
             let entitiesVar =   ["attractions", "notable_characters"];
 
             for (let i = 0; i < entities.length; i++) {
+                if (entities[i] && entities[i].length > 0) { 
+                    let names = [];
 
-                if (entities[i] != (undefined || "")){
-                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-    
-                    if(response.ok) {
-                        const responseData = await response.json();
-    
-                        switch(entitiesVar[i]) {
-                            case "attractions":
-                                attractions = responseData[0].name;
-                                break;
-                            case "notable_characters":
-                                notable_characters = responseData[0].name;
-                                break;
+                    for (let j = 0; j < entities[i].length; j++) {
+                        const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i][j]}`);
+
+                        if(response.ok) {
+                            const responseData = await response.json();
+                            names.push(responseData.name);
+                        } else {
+                            console.error(`Failed to fetch ${entitiesVar[i]} name`);
                         }
-    
                     }
 
+                    // Seperate the names into strings
+                    switch(entitiesVar[i]) {
+                        case "attractions":
+                            attractions = names.join(', ');
+                            break;
+                        case "notable_characters":
+                            notable_characters = names.join(', ');
+                            break;
+                    }
                 } else {
                     switch(entitiesVar[i]) {
                         case "attractions":
@@ -426,15 +430,13 @@
                             notable_characters = "";
                             break;
                     }
-
                 }
-
             }
-        }
-        else {
+        } else {
             console.error("Couldn't finish. Failed to Select Place");  
         }
     };
+
 </script>
 
 <Form {showForm}>
@@ -549,10 +551,10 @@
                     {/if}
                 </h3> 
 
-                <h3>HISTORY:
-                    {#if history}
+                <h3>DESCRIPTION:
+                    {#if desc}
                     <span class="display">
-                        {history}
+                        {desc}
                     </span>  
                     {:else}
                         Unknown
