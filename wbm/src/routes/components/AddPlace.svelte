@@ -16,7 +16,7 @@
     let addedAttractions = [];
 
     let selectName;
-    let selectBio;
+    let selectHistory;
     let selectPopulation;
     let selectAttractions = [];
     let selectNotableCharacters = [];
@@ -116,17 +116,19 @@
                 let attractionIds = [];
                 let notableCharactersIds = [];
 
-                
+                //Add Notable Charcters to Backend
                 for (let i = 0; i < selectNotableCharacters.length; i++) {
                     let notable_character = selectNotableCharacters[i];
                     notableCharactersIds.push(notable_character);
                 }
 
+                //Add Listed Attractions to Backend
                 for (let i = 0; i < selectAttractions.length; i++) {
                     let attraction = selectAttractions[i];
                     attractionIds.push(attraction);
                 }
 
+                //Add New Attractions to Backend
                 for (let i = 0; i < addedAttractions.length; i++) {
                     let attraction = addedAttractions[i];
 
@@ -158,7 +160,7 @@
                     population: selectPopulation,
                     notable_characters: notableCharactersIds,
                     attractions: attractionIds,
-                    bio: selectBio,
+                    history: selectHistory,
                     image,
                     isSelected
                 };
@@ -207,8 +209,8 @@
         <input type="text" class="name" bind:value={selectName} required={submitting}>
 
 
-        <h4>Give your place a description</h4>
-        <textarea class="description" bind:value={selectBio}></textarea>
+        <h4>Give your place some history</h4>
+        <textarea class="description" bind:value={selectHistory}></textarea>
         
         
         <br><br>
@@ -225,6 +227,18 @@
         <button type="button" on:click={addAttraction}>Add</button>
         
         
+        
+        <br>
+        <h4 class="note">New Attrations List</h4>
+        <div class="boxscroll">
+            {#each addedAttractions as attraction, index}
+            <div>
+                <span>{attraction}</span>
+                <button on:click={() => removeAttraction(index)}>Remove</button>
+            </div>
+            {/each}
+        </div>
+        
         <h4 class="note"> and/or Pick from a Selection</h4>
         <div class="boxscroll">
             {#each allAttractions as attract}
@@ -234,18 +248,6 @@
                 </label>
             {/each}
         </div>
-        
-        <br>
-        <h4 class="note">Currrent Attrations List</h4>
-        <div class="boxscroll">
-            {#each addedAttractions as attraction, index}
-                <div>
-                    <span>{attraction}</span>
-                    <button on:click={() => removeAttraction(index)}>Remove</button>
-                </div>
-            {/each}
-        </div>
-
         <br><br>
 
         <h4>Notable Characters</h4>
