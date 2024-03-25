@@ -1,7 +1,7 @@
 <script>
     import { createEventDispatcher, onMount } from 'svelte';
-    import Form from "../components/Form.svelte";
-    import Confirm from "../components/Confirm.svelte";
+    import Form from "./Form.svelte";
+    import Confirm from "./Confirm.svelte";
 
 
     let dispatch = createEventDispatcher();
@@ -124,7 +124,6 @@
             submitting = true; 
             
             if (!selectbio) { selectbio = ''; };
-            
             isSelected = false;
     
             let entitiesName    =   [selectnationality, selectethnicity, selectgender, selectspecies];

@@ -102,7 +102,8 @@ const itemsSchema = new Schema({
   }],
   value: Number,
   quantity: Number,
-  desc: String
+  desc: String,
+  image: String
 });
 
 const eventsSchema = new Schema({
@@ -258,34 +259,47 @@ connect(URL, {
   });
 
 //Clean-Up
-app.delete('/api/cleanup', async (req,res) => {
+app.delete('/api/cleanup', async (_,res) => {
   let isReferenced;
   
   try {
-  const subentityModels = [nationality, ethnicity, gender, species];
+  const entityModels = [nationality, ethnicity, gender, species, attractions, category];
 
-    for (let i = 0; i < subentityModels.length; i++) {
-      const allSubEntities = await subentityModels[i].find().exec();
+    for (let i = 0; i < entityModels.length; i++) {
+      const allEntities = await entityModels[i].find().exec();
 
-      for (const subentity of allSubEntities) {
-        const subentityId  = subentity._id.toString();
+      for (const entity of allEntities) {
+        const entityId  = entity._id.toString();
         
-        switch(subentityModels[i]) {
+        switch(entityModels[i]) {
+
+          //CHARACTERS ENTITIES
           case nationality:
-            isReferenced = await characters.findOne({ nationality : subentityId }).exec();
+            isReferenced = await characters.findOne({ nationality : entityId }).exec();
             break;
           case ethnicity:
-            isReferenced = await characters.findOne({ ethnicity : subentityId }).exec();
+            isReferenced = await characters.findOne({ ethnicity : entityId }).exec();
             break;
           case gender:
-            isReferenced = await characters.findOne({ gender : subentityId }).exec();
+            isReferenced = await characters.findOne({ gender : entityId }).exec();
             break;
           case species:
-            isReferenced = await characters.findOne({ species : subentityId }).exec();
+            isReferenced = await characters.findOne({ species : entityId }).exec();
+            break;
+
+          //PLACES ENTITIES
+          case attractions:
+            isReferenced = await places.findOne({ attractions : entityId }).exec();
+            break;
+
+          //EVENTS ENTITIES
+          case category:
+            isReferenced = await places.findOne({ attractions : entityId }).exec();
+            break;
         }
 
       if(!isReferenced) {
-        await subentityModels[i].findByIdAndDelete( subentityId );
+        await entityModels[i].findByIdAndDelete( entityId );
       }
     }
 
@@ -296,6 +310,36 @@ app.delete('/api/cleanup', async (req,res) => {
     console.error(`Error deleting unsused subentiies`, error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+//World Clean-Up
+app.delete('/api/world_cleanup', async (_,res) => {
+  
+  try {
+    const entityModels = [characters, places, items, events];
+
+    for (const entityModel of entityModels) {
+        const allEntities = await entityModel.find().exec();
+
+        for (const entity of allEntities) {
+            const entityId = entity._id.toString();
+            const worldId = entity.world_id;
+
+            // Check if the world_id exists in the worlds collection
+            const isReferencedByWorld = await worlds.exists({ _id: worldId });
+
+            if (!isReferencedByWorld) {
+                // If world_id does not exist in worlds collection, delete the entity
+                await entityModel.findByIdAndDelete(entityId);
+            }
+        }
+    }
+
+    res.sendStatus(204);
+} catch (error) {
+    console.error(`Error deleting unused subentities:`, error);
+    res.status(500).json({ error: 'Internal Server Error' });
+}
 });
 
 // Return 

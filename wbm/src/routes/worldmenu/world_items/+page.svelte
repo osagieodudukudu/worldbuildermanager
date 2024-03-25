@@ -2,8 +2,8 @@
 
     import { onMount } from 'svelte';
 
-    import AddCharacter from '../../components/AddCharacter.svelte';
-    import EditCharacter from '../../components/EditCharacter.svelte';
+    import AddItem from '../../components/AddItem.svelte';
+    import EditItem from '../../components/EditItem.svelte';
     import Confirm from '../../components/Confirm.svelte';
     import Modal from '../../components/Modal.svelte';
     import Form from '../../components/Form.svelte';
@@ -17,7 +17,7 @@
     /**
      * @type {any[]}
      */
-    let characters = [];
+    let items = [];
 
     let showAdd = false; 
     let showEdit = false;
@@ -75,11 +75,11 @@
             selectedworld = data;
         }
 
-        const response2 = await fetch(`http://localhost:3000/api/characters/grab/${selectedworld._id}`);
+        const response2 = await fetch(`http://localhost:3000/api/items/grab/${selectedworld._id}`);
 
         if (response2.ok) {
             const data = await response2.json();
-            characters = data;
+            items = data;
         }
 
     });
@@ -118,7 +118,7 @@
     
     async function handleSelect(object){
         selectedID = object._id;
-        const response = await fetch(`http://localhost:3000/api/characters/select/${ object._id }`, {
+        const response = await fetch(`http://localhost:3000/api/items/select/${ object._id }`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -127,9 +127,9 @@
         });
 
         if (response.ok) {
-            const selectCharacter = await response.json();
+            const selectItem = await response.json();
 
-            if (selectCharacter.image){
+            if (selectItem.image){
                 isImageShown = true;
             } else {
                 isImageShown = false;
@@ -142,16 +142,16 @@
 
     }; 
     
-    const addCharacter = async(e) => {
+    const addItem = async(e) => {
         
-        const newCharacter = e.detail;
+        const newItem = e.detail;
         
-        fetch('http://localhost:3000/api/characters/add', {
+        fetch('http://localhost:3000/api/items/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(newCharacter),
+            body: JSON.stringify(newItem),
         })
         .then((response) => {
             
@@ -161,18 +161,18 @@
             } 
             
             else {
-                throw new Error('Failed to add character');
+                throw new Error('Failed to add item');
             }
             
         })
-        .then((addedCharacter) => {
+        .then((addedItem) => {
             
-            characters = [ ...characters, addedCharacter];
+            items = [ ...items, addedItem];
             
             showAdd = !showAdd;
 
-            handleSelect(addedCharacter);
-            selectedID = addedCharacter._id;
+            handleSelect(addedItem);
+            selectedID = addedItem._id;
             
         })
         .catch((error) => {
@@ -180,13 +180,13 @@
             
         });
         
-        selectedID = newCharacter.selectedID;
-        name = newCharacter.name;
-        age = newCharacter.age;
-        bio = newCharacter.bio;
-        image = newCharacter.image;
+        selectedID = newItem.selectedID;
+        name = newItem.name;
+        age = newItem.age;
+        bio = newItem.bio;
+        image = newItem.image;
 
-        let entities    =   [newCharacter.nationality, newCharacter.ethnicity, newCharacter.gender, newCharacter.species];
+        let entities    =   [newItem.nationality, newItem.ethnicity, newItem.gender, newItem.species];
         let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
         
         for (let i = 0; i < entities.length; i++) {
@@ -229,16 +229,16 @@
         
     };
     
-    const deleteCharacter = async (object) => {
-        message = "YOU WANT TO DELETE YOUR CHARACTER?"
+    const deleteItem = async (object) => {
+        message = "YOU WANT TO DELETE YOUR ITEM?"
         ShowForm();
 
         await waitForConfirm();
 
         if ( confirm=="Y" ){
             try {
-                // Select the next character
-                const selectResponse = await fetch(`http://localhost:3000/api/characters/select/next/${object._id}`, {
+                // Select the next item
+                const selectResponse = await fetch(`http://localhost:3000/api/items/select/next/${object._id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -247,15 +247,15 @@
                 });
                 
                 if (!selectResponse.ok) {
-                    throw new Error(`Failed to select next character with ID ${object._id}`);
+                    throw new Error(`Failed to select next item with ID ${object._id}`);
                 } else {
-                    // Delete the selected character
-                    const deleteResponse = await fetch(`http://localhost:3000/api/characters/${object._id}`, {
+                    // Delete the selected item
+                    const deleteResponse = await fetch(`http://localhost:3000/api/items/${object._id}`, {
                         method: 'DELETE'
                     });
                     
                     if (!deleteResponse.ok) {
-                        throw new Error(`Failed to delete character with ID ${object._id}`);
+                        throw new Error(`Failed to delete item with ID ${object._id}`);
                     } else {
                         // Perform cleanup
                         const cleanupResponse = await fetch('http://localhost:3000/api/cleanup', {
@@ -268,11 +268,11 @@
                     }
                 }
                 
-                //Fetch updated characters data
-                const updatedCharactersResponse = await fetch(`http://localhost:3000/api/characters/grab/${selectedworld._id}`);
-                const updatedCharacters = await updatedCharactersResponse.json();
+                //Fetch updated items data
+                const updatedItemsResponse = await fetch(`http://localhost:3000/api/items/grab/${selectedworld._id}`);
+                const updatedItems = await updatedItemsResponse.json();
 
-                characters = Array.isArray(updatedCharacters) ? updatedCharacters : [];
+                items = Array.isArray(updatedItems) ? updatedItems : [];
 
                 name = "";
                 age = "";
@@ -293,27 +293,27 @@
         };
     };
 
-    async function editCharacter(updatedCharacterData) {
-        const objectId = updatedCharacterData._id;
+    async function editItem(updatedItemData) {
+        const objectId = updatedItemData._id;
         try {
-            const response = await fetch(`http://localhost:3000/api/characters/${objectId}`, {
+            const response = await fetch(`http://localhost:3000/api/items/${objectId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(updatedCharacterData),
+            body: JSON.stringify(updatedItemData),
             });
             
             if (response.ok) {
-                const updatedCharacter = await response.json();
+                const updatedItem = await response.json();
                 
-                selectedID = updatedCharacter._id;
-                name = updatedCharacter.name;
-                age = updatedCharacter.age;
-                bio = updatedCharacter.bio;
-                image = updatedCharacter.image;
+                selectedID = updatedItem._id;
+                name = updatedItem.name;
+                age = updatedItem.age;
+                bio = updatedItem.bio;
+                image = updatedItem.image;
                 
-                let entities    =   [updatedCharacter.nationality, updatedCharacter.ethnicity, updatedCharacter.gender, updatedCharacter.species];
+                let entities    =   [updatedItem.nationality, updatedItem.ethnicity, updatedItem.gender, updatedItem.species];
                 let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
                 
 
@@ -345,11 +345,11 @@
 
                 }
                 
-                //Fetch updated characters data
-                const updatedCharactersResponse = await fetch(`http://localhost:3000/api/characters/grab/${selectedworld._id}`);
-                const updatedCharacters = await updatedCharactersResponse.json();
+                //Fetch updated items data
+                const updatedItemsResponse = await fetch(`http://localhost:3000/api/items/grab/${selectedworld._id}`);
+                const updatedItems = await updatedItemsResponse.json();
 
-                characters = Array.isArray(updatedCharacters) ? updatedCharacters : [];
+                items = Array.isArray(updatedItems) ? updatedItems : [];
 
                 name = "";
                 age = "";
@@ -361,7 +361,7 @@
                 species = "";
             } 
             else {
-            console.error('Error editing character:', response.status);
+            console.error('Error editing item:', response.status);
             }
         } 
     
@@ -370,8 +370,8 @@
         }
     };
     
-    const handleEditCharacter = (e) => {
-        editCharacter(e.detail);
+    const handleEditItem = (e) => {
+        editItem(e.detail);
         showEdit = !showEdit;
     };
     
@@ -383,12 +383,12 @@
             reader.onload = async () => {
                 image = reader.result;
                 
-                const character = {
+                const item = {
                     _id: selectedID,
                     image
                 };
                 
-                editCharacter(character);
+                editItem(item);
 
                 isImageShown = true;
 
@@ -397,7 +397,7 @@
             reader.readAsDataURL(file);
 
         } else {
-            console.error("No Character Selected");
+            console.error("No Item Selected");
         };
     };
 
@@ -412,17 +412,17 @@
             if (selectedID) {
                 image = "";
         
-                const character = {
+                const item = {
                     _id: selectedID,
                     image
                 };
         
-                editCharacter(character);
+                editItem(item);
 
                 isImageShown = false;
                 
             } else {
-                console.error("No Character Selected");
+                console.error("No Item Selected");
             };
             confirm = "";
             
@@ -491,7 +491,7 @@
             }
         }
         else {
-            console.error("Couldn't finish. Failed to Select Character");  
+            console.error("Couldn't finish. Failed to Select Item");  
         }
     };
 
@@ -502,14 +502,14 @@
     <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
 </Form>
 
-<!-- Add Character Form -->
+<!-- Add Item Form -->
 <Modal {showAdd}>
-    <AddCharacter on:AddCharactertoList={addCharacter} on:CancelAdd={ShowAdd}/>
+    <AddItem on:AddItemtoList={addItem} on:CancelAdd={ShowAdd}/>
 </Modal>
 
-<!-- Edit Character Form -->
+<!-- Edit Item Form -->
 <Modal {showEdit}>
-    <EditCharacter on:UpdateCharacter={handleEditCharacter} on:CancelEdit={ShowEdit}/>
+    <EditItem on:UpdateItem={handleEditItem} on:CancelEdit={ShowEdit}/>
 </Modal>
     
 <body style="display: {showAdd || showEdit ? 'none' : 'grid'}">
@@ -519,21 +519,21 @@
             <!-- TITLE -->
             <button><a href="/worldmenu"><img src="../src/assets/back_arrow.png" alt="" id="arrow"></a></button>
             <h1 class="worldname">{selectedworld.name}</h1>
-            <h1 class="page-title">CHARACTERS</h1>
+            <h1 class="page-title">ITEMS</h1>
         </div>
         <div class="box" id="list-box">
             <!-- Add Button -->
-            <button on:click={ShowAdd}><h1 class="add">ADD CHARACTER</h1></button><br><br>
+            <button on:click={ShowAdd}><h1 class="add">ADD ITEM</h1></button><br><br>
 
             <!-- List -->
             <div class="text-box" id="list">
-                {#each characters as character}
-                    <div class="character">
-                        <button on:click = {ShowEdit(character)} title="Edit {character.name}" class="editbutton"><h1 class="edit"><img src="../src/assets/edit.png" alt="" class="edit"/></button>
+                {#each items as item}
+                    <div class="item">
+                        <button on:click = {ShowEdit(item)} title="Edit {item.name}" class="editbutton"><h1 class="edit"><img src="../src/assets/edit.png" alt="" class="edit"/></button>
                             
-                        <button on:click = {refreshData(character)} title="Select {character.name}" class="listbutton" class:selected = { character._id == selectedID }><h3 class="listname">{character.name}</h3></button>
+                        <button on:click = {refreshData(item)} title="Select {item.name}" class="listbutton" class:selected = { item._id == selectedID }><h3 class="listname">{item.name}</h3></button>
 
-                        <button on:click = {() => deleteCharacter(character)} title="Delete {character.name}"class="deletebutton"><img src="../src/assets/delete.png" alt="" class="delete"/></button>
+                        <button on:click = {() => deleteItem(item)} title="Delete {item.name}"class="deletebutton"><img src="../src/assets/delete.png" alt="" class="delete"/></button>
                     </div>    
                 {/each}
             </div>
@@ -642,7 +642,7 @@
                 </h3> 
                 
             {:else}
-                <h3 class ='blank'>ADD<br>A NEW CHARACTER<br><br> or <br><br>SELECT<br>A CHARACTER FROM THE LIST</h3>
+                <h3 class ='blank'>ADD<br>A NEW ITEM<br><br> or <br><br>SELECT<br>A ITEM FROM THE LIST</h3>
             {/if}
 
             
@@ -671,7 +671,7 @@
         transition-duration: 200ms;
         transition-timing-function: ease-in-out;
     }
-    .character {
+    .item {
         display: grid;
         grid-template-columns: 1fr 10fr 1fr;
         justify-content: center;

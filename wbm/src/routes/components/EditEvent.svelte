@@ -3,23 +3,20 @@
     import Form from "../components/Form.svelte";
     import Confirm from "../components/Confirm.svelte";
 
-
     let dispatch = createEventDispatcher();
     
     let selectedworld = [];
+    let selectedevent = [];
 
-    let allEthnicities = [];
-    let allNationailities = [];
-    let allGenders = [];
-    let allSpecies = [];
+   
+    let allLocations = [];
+    let allNotableCharacters = [];
 
     let selectname;
-    let selectbio;
-    let selectage;
-    let selectnationality;
-    let selectethnicity;
-    let selectgender;
-    let selectspecies;
+    let selectlocation;
+    let selectdate;
+    let selectnotecharacters;
+    let selecthistory;
 
     let showForm = false;
     let confirm = "";
@@ -29,7 +26,7 @@
     /**
      * @type {string | null | ArrayBuffer}
      */
-    let image;
+     let image;
     /**
      * @type {Boolean}
      */
@@ -37,19 +34,15 @@
     /**
      * @type {String}
      */
-    let ethnicity; 
+    let location; 
     /**
      * @type {String}
      */
-    let nationality;
+    let notable_character;
     /**
      * @type {String}
      */
-    let gender;
-     /**
-     * @type {String}
-     */
-    let species;
+    let history;
     /**
      * @type {Boolean}
      */
@@ -63,32 +56,21 @@
                 selectedworld = data;
             }
 
-        const response2 = await fetch(`http://localhost:3000/api/ethnicity/grab/${selectedworld._id}`);
+        const response2 = await fetch(`http://localhost:3000/api/location/grab/${selectedworld._id}`);
             
             if (response2.ok) {
                 const data = await response2.json();
-                allEthnicities = data;
+                allLocations = data;
             }
-        const response3 = await fetch(`http://localhost:3000/api/nationality/grab/${selectedworld._id}`);
+
+        const response3 = await fetch(`http://localhost:3000/api/notable_character/grab/${selectedworld._id}`);
             
             if (response3.ok) {
                 const data = await response3.json();
-                allNationailities = data;
+                allNotableCharacters = data;
             }
 
-        const response4 = await fetch(`http://localhost:3000/api/gender/grab/${selectedworld._id}`);
-            
-            if (response4.ok) {
-                const data = await response4.json();
-                allGenders = data;
-            }
-
-        const response7 = await fetch(`http://localhost:3000/api/species/grab/${selectedworld._id}`);
-            
-            if (response7.ok) {
-                const data = await response7.json();
-                allSpecies = data;
-            }
+    
     });
 
     const ShowForm = () => {
@@ -102,7 +84,6 @@
             confirm = answer;
             showForm = !showForm;
         } else {
-            confirm = "N";
         };
     };
 
@@ -113,105 +94,117 @@
     };
 
     async function handleSubmit() {
-        message = "YOU WANT TO ADD YOUR CHARACTER?";
+        message = "YOU WANT TO EDIT YOUR EVENT?"
         ShowForm();
 
         await waitForConfirm();
 
         if (confirm == "Y") {
-            
             confirm = "";
             submitting = true; 
             
-            if (!selectbio) { selectbio = ''; };
-            
+            if (!selecthistory) { selecthistory = '' }; 
             isSelected = false;
     
-            let entitiesName    =   [selectnationality, selectethnicity, selectgender, selectspecies];
-            let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+            let entities    =   [selectedevent.location, selectedevent.notable_characters];
+            let entitiesName = [selectlocation, selectnotecharacters];
+            let entitiesVar =   ["location", "notable_characters"];
     
             for (let i = 0; i < entitiesName.length; i++) {
+                if (entitiesName[i] && !(entitiesName[i].trim().length === 0)){
 
-
-                    let newEntity = {
+                    let Entity = {
                         world_id: selectedworld._id,
                         name: entitiesName[i],
                     };
         
                 
-                    //ADD ENTITY
+                    //EDIT ENTITY
                     try {
-                        const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
-                            method: 'POST',
+                        let response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/${entities[i]}`, {
+                            method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
+    
                             },
-                            body: JSON.stringify(newEntity),
+                            body: JSON.stringify(Entity),
                         });
+
+                        if (!response.ok) {
+                            //ADD ENTITY
+
+                            response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(Entity),
+                            });
+        
+                        }
         
                         if (response.ok) {
                             const responseData = await response.json();
         
                             switch(entitiesVar[i]) {
-                                case "nationality":
-                                    nationality = responseData._id;
+                                case "location":
+                                    location = responseData._id;
                                     break;
-                                case "ethnicity":
-                                    ethnicity = responseData._id;
-                                    break;
-                                case "gender":
-                                    gender = responseData._id;
-                                    break;
-                                case "species":
-                                    species = responseData._id;
+                                case "notable_characters":
+                                    notable_character = responseData._id;
                                     break;
                             }
-                        }
-                        else {
-                            throw new Error(`Failed to add ${entitiesVar[i]}`);
+                        } else {
+                            throw new Error(`Failed to edit ${entitiesVar[i]}`);
                         }
         
                     } catch (error) {
                         console.error('Failed to fetch:', error);
                     }
-                
+
+                } else {
+                    await fetch(`http://localhost:3000/api/${entitiesVar[i]}/${entities[i]}`, {
+                            method: 'DELETE',
+                    });
+                }
+
             }
             
-            const character = {
+            const event = {
                 world_id: selectedworld._id,
                 name: selectname,
-                age: selectage,
-                ethnicity,
-                nationality,
-                gender,
-                species,
-                bio: selectbio,
+                location,
+                date: selectdate,
+                notable_character,
+                history: selecthistory,
                 image,
                 isSelected
             };
             
-            dispatch('AddCharactertoList', character);
+            dispatch('UpdateEvent', event);
 
         } else {
             confirm = "";
         }
-
-    }
-    
-    async function handleCancel() {
-        message = "YOU WANT TO CANCEL?"
         
+        
+    };
+
+    async function handleCancel() {
+
+        message = "YOU WANT TO CANCEL?"
         ShowForm();
 
         await waitForConfirm();
 
         if (confirm == "Y") {
-            dispatch('CancelAdd');
+            dispatch('CancelEdit');
             confirm = "";
 
         } else {
             confirm = "";
         }
+    
     } 
 
 </script>
@@ -222,76 +215,54 @@
 
 <form on:submit|preventDefault = {handleSubmit}>
         
-    <h3>ADD YOUR CHARACTER!</h3> 
+    <h3>EDIT YOUR EVENT!</h3> 
 
     <div class="container">
 
     <div>
 
-        <h4>Name your character</h4>
+        <h4>Name your event</h4>
         <input type="text" class="name" bind:value={selectname} required={submitting}>
 
 
-        <h4>Give your character a biography</h4>
-        <textarea class="description" bind:value={selectbio}></textarea>
+        <h4>Give your event history</h4>
+        <textarea class="description" bind:value={selecthistory}></textarea>
         
         
         <br><br>
         <br><br>
         <br><br>
-        <h4>Age</h4>
-        <input type="number" class="age" bind:value={selectage} min="0">
+        <h4>Date</h4>
+        <input type="number" class="date" bind:value={selectdate} >
 
-        <br><br>
     </div>
     <div>
-        <h4>Nationality</h4>
-        <input type="text" class="nationality" bind:value={selectnationality}>
+
+        <br><br>
+        <h4>Location</h4>
+        <input type="text" class="location" bind:value={selectlocation}>
         <h4 class="note"> or Pick from a Selection</h4>
-        <select class="nationality" bind:value={selectnationality}>
+        <select class="location" bind:value={selectlocation}>
             <option value=""></option>
-            {#each allNationailities as nation}
-            <option value={nation.name}>{nation.name}</option>
+            {#each allLocations as local}
+            <option value={local.name}>{local.name}</option>
             {/each}
         </select>
 
         <br><br>
-        <h4>Ethnicity</h4>
-        <input type="text" class="ethnicity" bind:value={selectethnicity}>
+        <h4>Notable Characters</h4>
+        <input type="text" class="notable_characters" bind:value={selectnotecharacters}>
         <h4 class="note"> or Pick from a Selection</h4>
-        <select class="ethnicity" bind:value={selectethnicity}>
+        <select class="notable_characters" bind:value={selectnotecharacters}>
             <option value=""></option>
-            {#each allEthnicities as ethnic}
-            <option value={ethnic.name}>{ethnic.name}</option>
+            {#each allNotableCharacters as note}
+            <option value={note.name}>{note.name}</option>
             {/each}
         </select>
-
-        <h4>Gender</h4>
-        <input type="text" class="gender" bind:value={selectgender}>
-        <h4 class="note"> or Pick from a Selection</h4>
-        <select class="gender" bind:value={selectgender}>
-            <option value=""></option>
-            {#each allGenders as gender}
-            <option value={gender.name}>{gender.name}</option>
-            {/each}
-        </select>
-
-        <br><br>
-        <h4>Species</h4>
-        <input type="text" class="species" bind:value={selectspecies}>
-        <h4 class="note"> or Pick from a Selection</h4>
-        <select class="species" bind:value={selectspecies}>
-            <option value=""></option>
-            {#each allSpecies as species}
-            <option value={species.name}>{species.name}</option>
-            {/each}
-        </select>
-
-    </div>
     
 </div>
 <br><br><br><br>
-<button>ADD YOUR CHARACTER</button>
+<button>EDIT YOUR EVENT</button>
 <br><br><button type="button" on:click={handleCancel}>CANCEL</button>
     
     
@@ -325,7 +296,7 @@
         text-transform: uppercase;
     }
     
-    .name, .ethnicity, .nationality, .gender, .species{
+    .name, .notable_characters, .location, .gender, .species{
         width: 400px;
         height: 30px;
         border-radius: 20px;        

@@ -331,6 +331,7 @@
         padding: 20px;
         padding-top: 10px;
         border-radius: 20px;
+        overflow-wrap: break-word;
         overflow-y: scroll;
         box-shadow: 0 0 10px rgba(115, 62, 62, 0.322);
         

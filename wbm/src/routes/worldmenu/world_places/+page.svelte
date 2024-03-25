@@ -2,8 +2,8 @@
 
     import { onMount } from 'svelte';
 
-    import AddCharacter from '../../components/AddCharacter.svelte';
-    import EditCharacter from '../../components/EditCharacter.svelte';
+    import AddPlace from '../../components/AddPlace.svelte';
+    import EditPlace from '../../components/EditPlace.svelte';
     import Confirm from '../../components/Confirm.svelte';
     import Modal from '../../components/Modal.svelte';
     import Form from '../../components/Form.svelte';
@@ -17,14 +17,15 @@
     /**
      * @type {any[]}
      */
-    let characters = [];
+    let selectedplace = [];
+    /**
+     * @type {any[]}
+     */
+    let places = [];
 
     let showAdd = false; 
     let showEdit = false;
     let showForm = false;
-    let isImageShown = false;
-
-
     let confirm = "";
     let message = "";
 
@@ -39,27 +40,19 @@
     /**
      * @type {any}
      */
-    let age;
+    let population;
     /**
      * @type {any}
      */
-     let nationality;
+     let attractions;
     /**
      * @type {any}
      */
-    let ethnicity;
+    let notable_characters;
     /**
      * @type {any}
      */
-    let gender;
-    /**
-     * @type {any}
-     */
-    let species;
-    /**
-     * @type {any}
-     */
-    let bio;
+    let history;
     /**
      * @type {any}
      */
@@ -67,7 +60,7 @@
     
 
     onMount(async () => {
-
+        
         const response = await fetch('http://localhost:3000/api/worlds/selected');
         
         if (response.ok) {
@@ -75,11 +68,11 @@
             selectedworld = data;
         }
 
-        const response2 = await fetch(`http://localhost:3000/api/characters/grab/${selectedworld._id}`);
+        const response2 = await fetch(`http://localhost:3000/api/places/grab/${selectedworld._id}`);
 
         if (response2.ok) {
             const data = await response2.json();
-            characters = data;
+            places = data;
         }
 
     });
@@ -118,7 +111,7 @@
     
     async function handleSelect(object){
         selectedID = object._id;
-        const response = await fetch(`http://localhost:3000/api/characters/select/${ object._id }`, {
+        const response = await fetch(`http://localhost:3000/api/places/select/${ object._id }`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -127,31 +120,27 @@
         });
 
         if (response.ok) {
-            const selectCharacter = await response.json();
-
-            if (selectCharacter.image){
-                isImageShown = true;
-            } else {
-                isImageShown = false;
-            }
+            const selectedplace = await response.json();
 
             return true;
-        } else {
+        } 
+
+        else{
             return false;
         }
 
     }; 
     
-    const addCharacter = async(e) => {
+    const addPlace = async(e) => {
         
-        const newCharacter = e.detail;
+        const newPlace = e.detail;
         
-        fetch('http://localhost:3000/api/characters/add', {
+        fetch('http://localhost:3000/api/places/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(newCharacter),
+            body: JSON.stringify(newPlace),
         })
         .then((response) => {
             
@@ -161,18 +150,18 @@
             } 
             
             else {
-                throw new Error('Failed to add character');
+                throw new Error('Failed to add place');
             }
             
         })
-        .then((addedCharacter) => {
+        .then((addedPlace) => {
             
-            characters = [ ...characters, addedCharacter];
+            places = [ ...places, addedPlace];
             
             showAdd = !showAdd;
 
-            handleSelect(addedCharacter);
-            selectedID = addedCharacter._id;
+            handleSelect(addedPlace);
+            selectedID = addedPlace._id;
             
         })
         .catch((error) => {
@@ -180,14 +169,14 @@
             
         });
         
-        selectedID = newCharacter.selectedID;
-        name = newCharacter.name;
-        age = newCharacter.age;
-        bio = newCharacter.bio;
-        image = newCharacter.image;
+        selectedID = newPlace.selectedID;
+        name = newPlace.name;
+        population = newPlace.population;
+        history = newPlace.history;
+        image = newPlace.image;
 
-        let entities    =   [newCharacter.nationality, newCharacter.ethnicity, newCharacter.gender, newCharacter.species];
-        let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+        let entities    =   [newPlace.attractions, newPlace.notable_characters];
+        let entitiesVar =   ["attractions", "notable_characters"];
         
         for (let i = 0; i < entities.length; i++) {
             
@@ -196,49 +185,39 @@
             if(response.ok) {
                 const responseData = await response.json();
                 switch(entitiesVar[i]) {
-                    case "nationality": 
-                        nationality = responseData[0].name;
+                    case "attractions": 
+                        attractions = responseData[0].name;
                         break;
-                    case "ethnicity":
-                        ethnicity = responseData[0].name;
-                        break;
-                    case "gender":
-                        gender = responseData[0].name;
-                        break;
-                    case "species":
-                        species = responseData[0].name;
+                    case "notable_characters":
+                        notable_characters = responseData[0].name;
                         break;                        
                     }
             } else {
                 switch(entitiesVar[i]) {
-                    case "nationality": 
-                        nationality = "";
+                    case "attractions": 
+                        attractions = "";
                         break;
-                    case "ethnicity":
-                        ethnicity = "";
+                    case "notable_characters":
+                        notable_characters = "";
                         break;
-                    case "gender":
-                        gender = "";
-                        break;
-                    case "species":
-                        species = "";
-                        break;                        
-                }
+                                          
+                    }
             }
+
         }
         
     };
     
-    const deleteCharacter = async (object) => {
-        message = "YOU WANT TO DELETE YOUR CHARACTER?"
+    const deletePlace = async (object) => {
+        message = "YOU WANT TO DELETE YOUR PLACE?"
         ShowForm();
 
         await waitForConfirm();
 
         if ( confirm=="Y" ){
             try {
-                // Select the next character
-                const selectResponse = await fetch(`http://localhost:3000/api/characters/select/next/${object._id}`, {
+                // Select the next place
+                const selectResponse = await fetch(`http://localhost:3000/api/places/select/next/${object._id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -247,15 +226,15 @@
                 });
                 
                 if (!selectResponse.ok) {
-                    throw new Error(`Failed to select next character with ID ${object._id}`);
+                    throw new Error(`Failed to select next place with ID ${object._id}`);
                 } else {
-                    // Delete the selected character
-                    const deleteResponse = await fetch(`http://localhost:3000/api/characters/${object._id}`, {
+                    // Delete the selected place
+                    const deleteResponse = await fetch(`http://localhost:3000/api/places/${object._id}`, {
                         method: 'DELETE'
                     });
                     
                     if (!deleteResponse.ok) {
-                        throw new Error(`Failed to delete character with ID ${object._id}`);
+                        throw new Error(`Failed to delete place with ID ${object._id}`);
                     } else {
                         // Perform cleanup
                         const cleanupResponse = await fetch('http://localhost:3000/api/cleanup', {
@@ -268,20 +247,17 @@
                     }
                 }
                 
-                //Fetch updated characters data
-                const updatedCharactersResponse = await fetch(`http://localhost:3000/api/characters/grab/${selectedworld._id}`);
-                const updatedCharacters = await updatedCharactersResponse.json();
-
-                characters = Array.isArray(updatedCharacters) ? updatedCharacters : [];
+                //Fetch updated places data
+                const updatedPlacesResponse = await fetch('http://localhost:3000/api/places');
+                const updatedPlaces = await updatedPlacesResponse.json();
+                places = updatedPlaces.reverse();
 
                 name = "";
-                age = "";
-                bio = "";
+                population = "";
+                history = "";
                 image  = "";
-                nationality = "";
-                ethnicity = "";
-                gender = "";
-                species = "";
+                attractions = "";
+                notable_characters = "";
                     
             }
             catch (error) {
@@ -293,28 +269,28 @@
         };
     };
 
-    async function editCharacter(updatedCharacterData) {
-        const objectId = updatedCharacterData._id;
+    async function editPlace(updatedPlaceData) {
+        const objectId = updatedPlaceData._id;
         try {
-            const response = await fetch(`http://localhost:3000/api/characters/${objectId}`, {
+            const response = await fetch(`http://localhost:3000/api/places/${objectId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(updatedCharacterData),
+            body: JSON.stringify(updatedPlaceData),
             });
             
             if (response.ok) {
-                const updatedCharacter = await response.json();
+                const updatedPlace = await response.json();
                 
-                selectedID = updatedCharacter._id;
-                name = updatedCharacter.name;
-                age = updatedCharacter.age;
-                bio = updatedCharacter.bio;
-                image = updatedCharacter.image;
+                selectedplace = updatedPlace;
+                selectedID = updatedPlace._id;
+                name = updatedPlace.name;
+                population = updatedPlace.population;
+                history = updatedPlace.history;
                 
-                let entities    =   [updatedCharacter.nationality, updatedCharacter.ethnicity, updatedCharacter.gender, updatedCharacter.species];
-                let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+                let entities    =   [updatedPlace.attractions, updatedPlace.notable_characters];
+                let entitiesVar =   ["attractions", "notable_characters"];
                 
 
                 for (let i = 0; i < entities.length; i++) {
@@ -326,42 +302,24 @@
 
                         
                         switch(entitiesVar[i]) {
-                            case "nationality": 
-                                nationality = responseData[0].name;
-                        
+                            case "attractions": 
+                                attractions = responseData[0].name;
                                 break;
-                            case "ethnicity":
-                                ethnicity = responseData[0].name;
-                
-                                break;
-                            case "gender":
-                                gender = responseData[0].name;
-                                break;
-                            case "species":
-                                species = responseData[0].name;
-                                break;                        
+                            case "notable_characters":
+                                notable_characters = responseData[0].name;
+                                break;                 
                         }
                     }
 
                 }
-                
-                //Fetch updated characters data
-                const updatedCharactersResponse = await fetch(`http://localhost:3000/api/characters/grab/${selectedworld._id}`);
-                const updatedCharacters = await updatedCharactersResponse.json();
 
-                characters = Array.isArray(updatedCharacters) ? updatedCharacters : [];
 
-                name = "";
-                age = "";
-                bio = "";
-                image  = "";
-                nationality = "";
-                ethnicity = "";
-                gender = "";
-                species = "";
+                const updatedPlacesResponse = await fetch('http://localhost:3000/api/places');
+                const updatedPlaces = await updatedPlacesResponse.json();
+                places = updatedPlaces.reverse();
             } 
             else {
-            console.error('Error editing character:', response.status);
+            console.error('Error editing place:', response.status);
             }
         } 
     
@@ -370,34 +328,31 @@
         }
     };
     
-    const handleEditCharacter = (e) => {
-        editCharacter(e.detail);
+    const handleEditPlace = (e) => {
+        editPlace(e.detail);
         showEdit = !showEdit;
     };
     
-    function handleFileChange(e) {
+    function handleFileChange(event) {
         if (selectedID) {
-            const file = e.target.files[0];
+            const file = event.target.files[0];
             const reader = new FileReader();
             
             reader.onload = async () => {
                 image = reader.result;
                 
-                const character = {
+                const place = {
                     _id: selectedID,
                     image
                 };
                 
-                editCharacter(character);
-
-                isImageShown = true;
-
+                editPlace(place);
             };
         
             reader.readAsDataURL(file);
 
         } else {
-            console.error("No Character Selected");
+            console.error("No Place Selected");
         };
     };
 
@@ -412,17 +367,15 @@
             if (selectedID) {
                 image = "";
         
-                const character = {
+                const place = {
                     _id: selectedID,
                     image
                 };
         
-                editCharacter(character);
-
-                isImageShown = false;
+                editPlace(place);
                 
             } else {
-                console.error("No Character Selected");
+                console.error("No Place Selected");
             };
             confirm = "";
             
@@ -438,12 +391,12 @@
         
         if (finished) {
             name = object.name;
-            age = object.age;
-            bio = object.bio;
+            population = object.population;
+            history = object.history;
             image = object.image; 
 
-            let entities    =   [object.nationality, object.ethnicity, object.gender, object.species];
-            let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+            let entities    =   [object.attractions, object.notable_characters];
+            let entitiesVar =   ["attractions", "notable_characters"];
 
             for (let i = 0; i < entities.length; i++) {
 
@@ -454,17 +407,11 @@
                         const responseData = await response.json();
     
                         switch(entitiesVar[i]) {
-                            case "nationality":
-                                nationality = responseData[0].name;
+                            case "attractions":
+                                attractions = responseData[0].name;
                                 break;
-                            case "ethnicity":
-                                ethnicity = responseData[0].name;
-                                break;
-                            case "gender":
-                                gender = responseData[0].name;
-                                break;
-                            case "species":
-                                species = responseData[0].name;
+                            case "notable_characters":
+                                notable_characters = responseData[0].name;
                                 break;
                         }
     
@@ -472,17 +419,11 @@
 
                 } else {
                     switch(entitiesVar[i]) {
-                        case "nationality":
-                            nationality = "";
+                        case "attractions":
+                            attractions = "";
                             break;
-                        case "ethnicity":
-                            ethnicity = "";
-                            break;
-                        case "gender":
-                            gender = "";
-                            break;
-                        case "species":
-                            species = "";
+                        case "notable_characters":
+                            notable_characters = "";
                             break;
                     }
 
@@ -491,25 +432,23 @@
             }
         }
         else {
-            console.error("Couldn't finish. Failed to Select Character");  
+            console.error("Couldn't finish. Failed to Select Place");  
         }
     };
-
 </script>
 
-<!-- Confirmation -->
 <Form {showForm}>
     <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
 </Form>
 
-<!-- Add Character Form -->
+<!-- Add Place Form -->
 <Modal {showAdd}>
-    <AddCharacter on:AddCharactertoList={addCharacter} on:CancelAdd={ShowAdd}/>
+    <AddPlace on:AddPlacetoList={addPlace} on:CancelAdd={ShowAdd}/>
 </Modal>
 
-<!-- Edit Character Form -->
+<!-- Edit Place Form -->
 <Modal {showEdit}>
-    <EditCharacter on:UpdateCharacter={handleEditCharacter} on:CancelEdit={ShowEdit}/>
+    <EditPlace on:UpdatePlace={handleEditPlace} on:CancelEdit={ShowEdit}/>
 </Modal>
     
 <body style="display: {showAdd || showEdit ? 'none' : 'grid'}">
@@ -519,21 +458,21 @@
             <!-- TITLE -->
             <button><a href="/worldmenu"><img src="../src/assets/back_arrow.png" alt="" id="arrow"></a></button>
             <h1 class="worldname">{selectedworld.name}</h1>
-            <h1 class="page-title">CHARACTERS</h1>
+            <h1 class="page-title">PLACES</h1>
         </div>
         <div class="box" id="list-box">
             <!-- Add Button -->
-            <button on:click={ShowAdd}><h1 class="add">ADD CHARACTER</h1></button><br><br>
+            <button on:click={ShowAdd}><h1 class="add">ADD PLACE</h1></button><br><br>
 
             <!-- List -->
             <div class="text-box" id="list">
-                {#each characters as character}
-                    <div class="character">
-                        <button on:click = {ShowEdit(character)} title="Edit {character.name}" class="editbutton"><h1 class="edit"><img src="../src/assets/edit.png" alt="" class="edit"/></button>
+                {#each places as place}
+                    <div class="place">
+                        <button on:click = {ShowEdit(place)} title="Edit {place.name}" class="editbutton"><h1 class="edit"><img src="../src/assets/edit.png" alt="" class="edit"/></button>
                             
-                        <button on:click = {refreshData(character)} title="Select {character.name}" class="listbutton" class:selected = { character._id == selectedID }><h3 class="listname">{character.name}</h3></button>
+                        <button on:click = {refreshData(place)} title="Select {place.name}" class="listbutton" class:selected = { place._id == selectedID }><h3 class="listname">{place.name}</h3></button>
 
-                        <button on:click = {() => deleteCharacter(character)} title="Delete {character.name}"class="deletebutton"><img src="../src/assets/delete.png" alt="" class="delete"/></button>
+                        <button on:click = {() => deletePlace(place)} title="Delete {place.name}"class="deletebutton"><img src="../src/assets/delete.png" alt="" class="delete"/></button>
                     </div>    
                 {/each}
             </div>
@@ -541,22 +480,21 @@
     </div>
     
     <div class="box" id="imageslot">
-        <br>
-        <h2>CLICK ON THE IMAGE BELOW TO <br>UPLOAD THE IMAGE OF YOUR PLACE<br><br>RECOMMENDED SIZE: (1080 x 1920)</h2>
+        <br><h2>CLICK ON THE IMAGE BELOW TO <br>UPLOAD THE IMAGE OF YOUR PLACE<br><br>RECOMMENDED SIZE: (1080 x 1920)</h2>
         <br><br>
         <div id="image-box">
             <label for="file-upload" class="custom-file-upload">
                 <input id="file-upload" type="file" accept="image/*" on:change={handleFileChange}/>
-                {#if isImageShown}
-                    <img src={image} alt='' id="image"/>
+                {#if image}
+                <img src={image} alt='' id="image">
                 {:else}
-                    <img src="../src/assets/blank image_vert.png" alt='' id="image">
-      
+                <img src="../src/assets/blank image_vert.png" alt='' id="image">
                 {/if}
             </label>
         </div>
         <br>
-        <button title="Remove Image" class="remove" on:click={handleFileRemove}>REMOVE IMAGE</button>
+        <button title="Remove Image" class="remove" on:click={() => handleFileRemove()}>REMOVE IMAGE</button>
+
     </div>
 
     <div class="box" id="description">
@@ -581,60 +519,40 @@
                     {/if}
                 </h3>
 
-                <h3>AGE:
-                    {#if age}
+                <h3>POPULATION:
+                    {#if population}
                         <span class="display">
-                            {age}
+                            {population}
                         </span> 
                     {:else}
                         Unknown
                     {/if}
                 </h3> 
                 
-                <h3>ETHNICITY:
-                    {#if ethnicity}
+                <h3>NOTABLE CHARACTERS:
+                    {#if notable_characters}
                     <span class="display">
-                        {ethnicity}
+                        {notable_characters}
                     </span>  
                     {:else}
                         Unknown
                     {/if}
                 </h3> 
 
-                <h3>NATIONALITY:
-                    {#if nationality}
+                <h3>ATTRACTIONS:
+                    {#if attractions}
                     <span class="display">
-                        {nationality}
+                        {attractions}
                     </span> 
                     {:else}
                         Unknown
                     {/if}
                 </h3> 
-                
-                <h3>GENDER:
-                    {#if gender}
-                    <span class="display">
-                        {gender}
-                    </span>  
-                    {:else}
-                        Unknown
-                    {/if}
-                </h3> 
 
-                <h3>SPECIES:
-                    {#if species}
+                <h3>HISTORY:
+                    {#if history}
                     <span class="display">
-                        {species}
-                    </span>  
-                    {:else}
-                        Unknown
-                    {/if}
-                </h3> 
-
-                <h3>BIO:
-                    {#if bio}
-                    <span class="display">
-                        {bio}
+                        {history}
                     </span>  
                     {:else}
                         Unknown
@@ -642,7 +560,7 @@
                 </h3> 
                 
             {:else}
-                <h3 class ='blank'>ADD<br>A NEW CHARACTER<br><br> or <br><br>SELECT<br>A CHARACTER FROM THE LIST</h3>
+                <h3 class ='blank'>ADD<br>A NEW PLACE<br><br> or <br><br>SELECT<br>A PLACE FROM THE LIST</h3>
             {/if}
 
             
@@ -671,7 +589,7 @@
         transition-duration: 200ms;
         transition-timing-function: ease-in-out;
     }
-    .character {
+    .place {
         display: grid;
         grid-template-columns: 1fr 10fr 1fr;
         justify-content: center;
