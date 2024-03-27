@@ -45,22 +45,22 @@ const charactersSchema = new Schema ({
     trim: true
   },
   age: Number,
-  ethnicity: [{
+  ethnicity: {
     type: mongoose.Schema.Types.ObjectId,
     ref:'ethnicitySchema'
-  }],
-  nationality: [{
+  },
+  nationality: {
     type: mongoose.Schema.Types.ObjectId,
     ref:'nationalitySchema'
-  }],
-  gender: [{
+  },
+  gender: {
     type: mongoose.Schema.Types.ObjectId,
     ref:'genderSchema'
-  }],
-  species: [{
+  },
+  species: {
     type: mongoose.Schema.Types.ObjectId,
     ref:'speciesSchema'
-  }],
+  },
   bio: String,
   image: String,
 })
@@ -92,13 +92,13 @@ const itemsSchema = new Schema({
     ref: 'worldSchema'
   },
   name: String,
-  owner: [{
+  owners: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'charactersSchema'
   }],
-  category: [{
+  categories: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'categorySchema'
+    ref: 'categoriesSchema'
   }],
   value: Number,
   quantity: Number,
@@ -113,10 +113,10 @@ const eventsSchema = new Schema({
     ref: 'worldSchema'
   },
   name: String,
-  location: [{
+  location: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'placesSchema'
-  }],
+  },
   date: Date,
   notable_characters: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -126,7 +126,7 @@ const eventsSchema = new Schema({
   image: String
 });
 
-//CHARACTER SCHEMAS
+//CHARACTER SUB-SCHEMAS
 
 const ethnicitySchema = new Schema ({
   world_id: {
@@ -180,7 +180,7 @@ const speciesSchema = new Schema ({
   }
 })
 
-//PLACES SCHEMA
+//PLACES SUB-SCHEMA
 const attractionsSchema = new Schema({
   world_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -193,8 +193,8 @@ const attractionsSchema = new Schema({
   }
 });
 
-//ITEM SCHEMA
-const categorySchema = new Schema ({
+//ITEM SUB-SCHEMA
+const categoriesSchema = new Schema ({
   world_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'worldSchema'
@@ -223,7 +223,7 @@ const species = mongoose.model('species', speciesSchema);
 const attractions = mongoose.model('attractions', attractionsSchema);
 
 //Item Collections
-const category = mongoose.model('category', categorySchema);
+const categories = mongoose.model('categories', categoriesSchema);
 
 //Entity Models
 const entityModels = {
@@ -237,7 +237,7 @@ const entityModels = {
   gender: gender,
   species: species,
   attractions: attractions,
-  category: category
+  categories: categories
 };
 
 let URL = "mongodb://127.0.0.1:27017/worldbuilder"
@@ -263,7 +263,7 @@ app.delete('/api/cleanup', async (_,res) => {
   let isReferenced;
   
   try {
-  const entityModels = [nationality, ethnicity, gender, species, attractions, category];
+  const entityModels = [nationality, ethnicity, gender, species, attractions, categories];
 
     for (let i = 0; i < entityModels.length; i++) {
       const allEntities = await entityModels[i].find().exec();
@@ -293,9 +293,10 @@ app.delete('/api/cleanup', async (_,res) => {
             break;
 
           //EVENTS ENTITIES
-          case category:
+          case categories:
             isReferenced = await places.findOne({ attractions : entityId }).exec();
             break;
+
         }
 
       if(!isReferenced) {
@@ -313,34 +314,24 @@ app.delete('/api/cleanup', async (_,res) => {
 });
 
 //World Clean-Up
-app.delete('/api/world_cleanup', async (_,res) => {
-  
+app.delete('/api/cleanup/:worldId', async (req, res) => {
+  const { worldId } = req.params;
+
   try {
-    const entityModels = [characters, places, items, events];
-
-    for (const entityModel of entityModels) {
-        const allEntities = await entityModel.find().exec();
-
-        for (const entity of allEntities) {
-            const entityId = entity._id.toString();
-            const worldId = entity.world_id;
-
-            // Check if the world_id exists in the worlds collection
-            const isReferencedByWorld = await worlds.exists({ _id: worldId });
-
-            if (!isReferencedByWorld) {
-                // If world_id does not exist in worlds collection, delete the entity
-                await entityModel.findByIdAndDelete(entityId);
-            }
-        }
-    }
+    await Promise.all([
+      characters.deleteMany({ world_id: worldId }),
+      places.deleteMany({ world_id: worldId }),
+      items.deleteMany({ world_id: worldId }),
+      events.deleteMany({ world_id: worldId })
+    ]);
 
     res.sendStatus(204);
-} catch (error) {
-    console.error(`Error deleting unused subentities:`, error);
+  } catch (error) {
+    console.error("Error deleting world's associated entities:", error);
     res.status(500).json({ error: 'Internal Server Error' });
-}
+  }
 });
+
 
 // Return 
 app.get('/api/:entity', async (req, res) => {
@@ -568,27 +559,23 @@ app.get('/api/:entity/grab/:id', async (req, res) => {
     
     const objectId = new mongoose.Types.ObjectId(id);
     
-    const allEntities = await entityModels[entity].find({ world_id: objectId }).exec();
+    const entitiesByWorldId = await entityModels[entity].find({ world_id: objectId }).exec();
+    const entityById = await entityModels[entity].findById(objectId).exec();
 
-    const allEntities2 = await entityModels[entity].find({ _id: objectId }).exec();
-
-    if (allEntities.length > 0) {
-      res.json(allEntities);
-    }
-    else if(allEntities2.length > 0){
-      res.json(allEntities2);
-    }
-    else {
+    if (entitiesByWorldId.length > 0) {
+      res.json(entitiesByWorldId);
+    } else if (entityById) {
+      res.json(entityById);
+    } else {
       return res.status(404).json({ error: `No ${ entity } found` });
     }
   } 
   
   catch (error) {
     console.error(`Error fetching ${ entity }:`, error);
-    res.status(500).json({ error: 'Internal Server Retriving Error' });
+    res.status(500).json({ error: 'Internal Server Retrieving Error' });
   }
 });
-
 
 
 app.listen(PORT, () => {

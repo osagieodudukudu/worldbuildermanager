@@ -44,7 +44,7 @@
     /**
      * @type {any}
      */
-     let attractions;
+    let attractions;
     /**
      * @type {any}
      */
@@ -176,35 +176,43 @@
         image = newPlace.image;
 
         let entities    =   [newPlace.attractions, newPlace.notable_characters];
-        let entitiesVar =   ["attractions", "notable_characters"];
+        let entitiesVar =   ["attractions", "characters"];
         
         for (let i = 0; i < entities.length; i++) {
-            
-            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-            
-            if(response.ok) {
-                const responseData = await response.json();
-                switch(entitiesVar[i]) {
-                    case "attractions": 
-                        attractions = responseData[0].name;
-                        break;
-                    case "notable_characters":
-                        notable_characters = responseData[0].name;
-                        break;                        
-                    }
-            } else {
-                switch(entitiesVar[i]) {
-                    case "attractions": 
-                        attractions = "";
-                        break;
-                    case "notable_characters":
-                        notable_characters = "";
-                        break;
-                                          
-                    }
-            }
+                if (entities[i] && entities[i].length > 0) { 
+                    let names = [];
 
-        }
+                    for (let j = 0; j < entities[i].length; j++) {
+                        const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i][j]}`);
+
+                        if(response.ok) {
+                            const responseData = await response.json();
+                            names.push(responseData.name);
+                        } else {
+                            console.error(`Failed to fetch ${entitiesVar[i]} name`);
+                        }
+                    }
+
+                    // Seperate the names into strings
+                    switch(entitiesVar[i]) {
+                        case "attractions":
+                            attractions = names.join(', ');
+                            break;
+                        case "characters":
+                            notable_characters = names.join(', ');
+                            break;
+                    }
+                } else {
+                    switch(entitiesVar[i]) {
+                        case "attractions":
+                            attractions = "";
+                            break;
+                        case "characters":
+                            notable_characters = "";
+                            break;
+                    }
+                }
+            }
         
     };
     
@@ -290,40 +298,44 @@
                 desc = updatedPlace.desc;
                 
                 let entities    =   [updatedPlace.attractions, updatedPlace.notable_characters];
-                let entitiesVar =   ["attractions", "notable_characters"];
+                let entitiesVar =   ["attractions", "characters"];
                 
-
+                
                 for (let i = 0; i < entities.length; i++) {
-                    
-                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-                    
-                    if(response.ok) {
-                        const responseData = await response.json();
-
-                        
-                        switch(entitiesVar[i]) {
-                            case "attractions": 
-                                attractions = responseData[0].name;
-                                break;
-                            case "notable_characters":
-                                notable_characters = responseData[0].name;
-                                break;                 
+                    let names = [];
+                    if (entities[i] && entities[i].length > 0) { 
+                        for (let j = 0; j < entities[i].length; j++) {
+                            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i][j]}`);
+                            if (response.ok) {
+                                const responseData = await response.json();
+                                names.push(responseData.name);
+                            } else {
+                                console.error(`Failed to fetch ${entitiesVar[i]} name`);
+                            }
                         }
                     }
+                
 
+                // Separate the names into strings
+                switch(entitiesVar[i]) {
+                    case "attractions":
+                        attractions = names.join(', ');
+                        break;
+                    case "characters":
+                        notable_characters = names.join(', ');
+                        break;
                 }
-
-
+            }
+                
+                // Fetch updated places
                 const updatedPlacesResponse = await fetch('http://localhost:3000/api/places');
                 const updatedPlaces = await updatedPlacesResponse.json();
                 places = updatedPlaces.reverse();
-            } 
-            else {
-            console.error('Error editing place:', response.status);
+            } else {
+                console.error('Error editing place:', response.status);
             }
-        } 
-    
-        catch (error) {
+
+        } catch (error) {
             console.error('Failed to fetch:', error);
         }
     };
@@ -395,7 +407,7 @@
             image = object.image; 
 
             let entities    =   [object.attractions, object.notable_characters];
-            let entitiesVar =   ["attractions", "notable_characters"];
+            let entitiesVar =   ["attractions", "characters"];
 
             for (let i = 0; i < entities.length; i++) {
                 if (entities[i] && entities[i].length > 0) { 
@@ -417,7 +429,7 @@
                         case "attractions":
                             attractions = names.join(', ');
                             break;
-                        case "notable_characters":
+                        case "characters":
                             notable_characters = names.join(', ');
                             break;
                     }
@@ -426,7 +438,7 @@
                         case "attractions":
                             attractions = "";
                             break;
-                        case "notable_characters":
+                        case "characters":
                             notable_characters = "";
                             break;
                     }
@@ -471,7 +483,7 @@
                 {#each places as place}
                     <div class="place">
                         <button on:click = {ShowEdit(place)} title="Edit {place.name}" class="editbutton"><h1 class="edit"><img src="../src/assets/edit.png" alt="" class="edit"/></button>
-                            
+                     
                         <button on:click = {refreshData(place)} title="Select {place.name}" class="listbutton" class:selected = { place._id == selectedID }><h3 class="listname">{place.name}</h3></button>
 
                         <button on:click = {() => deletePlace(place)} title="Delete {place.name}"class="deletebutton"><img src="../src/assets/delete.png" alt="" class="delete"/></button>

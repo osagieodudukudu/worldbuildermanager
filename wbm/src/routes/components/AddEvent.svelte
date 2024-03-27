@@ -8,15 +8,16 @@
     
     let selectedworld = [];
 
+    let allNotableCharacters = [];
     let allLocations = [];
-    let allCharacters = [];
 
-    let selectname;
-    let selectlocation;
-    let selectdate;
-    let selectnotecharacters;
-    let selecthistory;
 
+    let selectName;
+    let selectHistory;
+    let selectDate;
+    let selectLocation;
+    let selectNotableCharacters = [];
+    
     let showForm = false;
     let confirm = "";
     let message = "";
@@ -33,11 +34,11 @@
     /**
      * @type {String}
      */
-    let location; 
+    let notablecharacters; 
     /**
      * @type {String}
      */
-    let notable_character;
+    let locations;
     /**
      * @type {Boolean}
      */
@@ -50,31 +51,27 @@
                 const data = await response.json();
                 selectedworld = data;
             }
-        
-        const response1 = await fetch(`http://localhost:3000/api/characters/grab/${selectedworld._id}`);
 
-            if (response1.ok) {
-                const data = await response1.json();
-                allCharacters = data;
-            }
-
-
-        const response2 = await fetch(`http://localhost:3000/api/places/grab/${selectedworld._id}`);
+        const response2 = await fetch(`http://localhost:3000/api/characters/grab/${selectedworld._id}`);
             
-            if (response2.ok) {
-                const data = await response2.json();
-                allLocations = data;
+        if (response2.ok) {
+            const data = await response2.json();
+            allNotableCharacters = data;
+        }
+        const response3 = await fetch(`http://localhost:3000/api/places/grab/${selectedworld._id}`);
+        
+        if (response3.ok) {
+            const data = await response3.json();
+            allLocations = data;
             }
-
-    
     });
-
+    
     const ShowForm = () => {
-
+        
         showForm = !showForm;
-
+        
     };
-
+    
     function setConfirm(answer) {
         if (answer=="Y" || answer=="N"){
             confirm = answer;
@@ -91,7 +88,7 @@
     };
 
     async function handleSubmit() {
-        message = "YOU WANT TO ADD YOUR EVENTS?";
+        message = "YOU WANT TO ADD YOUR EVENT?";
         ShowForm();
 
         await waitForConfirm();
@@ -101,72 +98,43 @@
             confirm = "";
             submitting = true; 
             
-            if (!selecthistory) { selecthistory = ''; };
+            if (!selectHistory) { selectHistory = ''; };
+            
             isSelected = false;
     
-            let entitiesName    =   [selectlocation, selectnotecharacters];
-            let entitiesVar =   ["places", "characters"];
-    
-            for (let i = 0; i < entitiesName.length; i++) {
+            try {
+                let locationIds = [];
+                let notableCharactersIds = [];
 
+                //Add Notable Charcters to Backend
+                for (let i = 0; i < selectNotableCharacters.length; i++) {
+                    let notable_character = selectNotableCharacters[i];
+                    notableCharactersIds.push(notable_character);
+                }
 
-                    let newEntity = {
-                        world_id: selectedworld._id,
-                        name: entitiesName[i],
-                    };
-        
-                
-                    //ADD ENTITY
-                    try {
-                        const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/add`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(newEntity),
-                        });
-        
-                        if (response.ok) {
-                            const responseData = await response.json();
-        
-                            switch(entitiesVar[i]) {
-                                case "location":
-                                    location = responseData._id;
-                                    break;
-                                case "notable_character":
-                                    notable_character = responseData._id;
-                                    break;
-                            }
-                        }
-                        else {
-                            throw new Error(`Failed to add ${entitiesVar[i]}`);
-                        }
-        
-                    } catch (error) {
-                        console.error('Failed to fetch:', error);
-                    }
-                
+                const event = {
+                    world_id: selectedworld._id,
+                    name: selectName,
+                    date: selectDate,
+                    notable_characters: notableCharactersIds,
+                    location: selectLocation,
+                    history: selectHistory,
+                    image,
+                    isSelected
+                };
+
+                dispatch('UpdateEvent', event);
+            } catch (error) {
+                console.error('Failed to fetch:', error);
             }
-            
-            const event = {
-                world_id: selectedworld._id,
-                name: selectname,
-                location,
-                date: selectdate,
-                notable_character,
-                history: selecthistory,
-                image,
-                isSelected
-            };
-            
-            dispatch('AddEventtoList', event);
 
         } else {
             confirm = "";
         }
 
     }
-    
+
+
     async function handleCancel() {
         message = "YOU WANT TO CANCEL?"
         
@@ -175,13 +143,13 @@
         await waitForConfirm();
 
         if (confirm == "Y") {
-            dispatch('CancelAdd');
+            dispatch('CancelEdit');
             confirm = "";
 
         } else {
             confirm = "";
         }
-    } 
+    };
 
 </script>
 
@@ -193,45 +161,57 @@
         
     <h3>ADD YOUR EVENT!</h3> 
 
+    <div class="container">
+
     <div>
 
         <h4>Name your event</h4>
-        <input type="text" class="name" bind:value={selectname} required={submitting}>
+        <input type="text" class="name" bind:value={selectName} required={submitting}>
 
 
-        <h4>Give your event history</h4>
-        <textarea class="description" bind:value={selecthistory}></textarea>
+        <h4>Give your event some history</h4>
+        <textarea class="history" bind:value={selectHistory}></textarea>
         
         
         <br><br>
         <br><br>
         <br><br>
+
         <h4>Date</h4>
-        <input type="date" class="date" bind:value={selectdate}>
+        <input type="date" class="date" bind:value={selectDate}>
 
         <br><br>
+    </div>
+    <div>
         <h4>Location</h4>
-        <input type="text" class="location" bind:value={selectlocation}>
-        <h4 class="note"> or Pick from a Selection</h4>
-        <select class="location" bind:value={selectlocation}>
-            <option value=""></option>
-            {#each allLocations as local}
-            <option value={local.name}>{local.name}</option>
+        <h4 class="note">Pick from a Selection</h4>
+        <h4 class="note">or go to the place tab to create more!</h4>
+        <div class="boxscroll">
+            {#each allLocations as location}
+                <label>
+                    <input type="radio" bind:group={selectLocation} value={location._id}>
+                    {location.name}
+                </label>
+                {/each}
+            </div>
+            <br><br>
+            
+        <h4>Notable Characters</h4>
+        <h4 class="note">Pick from a Selection </h4>
+        <h4 class="note">or go to the character tab to create more!</h4>
+        
+        <div class="boxscroll">
+            {#each allNotableCharacters as character}
+            <label>
+                <input type="checkbox" bind:group={selectNotableCharacters} value={character._id}>
+                {character.name}
+            </label>
             {/each}
-        </select>
-
-        <br><br>
-        <h4>Notable Character</h4>
-        <input type="text" class="notable_character" bind:value={selectnotecharacters}>
-        <h4 class="note"> or Pick from a Selection</h4>
-        <select class="notable_character" bind:value={selectnotecharacters}>
-            <option value=""></option>
-            {#each allCharacters as note}
-            <option value={note.name}>{note.name}</option>
-            {/each}
-        </select>
+        </div>
 
     </div>
+    
+</div>
 <br><br><br><br>
 <button>ADD YOUR EVENT</button>
 <br><br><button type="button" on:click={handleCancel}>CANCEL</button>
@@ -267,20 +247,29 @@
         text-transform: uppercase;
     }
     
-    .name, .notable_character, .location{
+    .name, .notablecharacter, .location{
         width: 400px;
         height: 30px;
         border-radius: 20px;        
 
     }
 
+    .boxscroll {
+        border: 2px solid #ccc;
+        border-radius: 20px;
+        padding: 10px;
+        margin-bottom: 20px;
+        height: 75px;
+        overflow-y: auto;
+    }
+
     .date {
         width: 150px;
-        height: 30px;
+        height: 40px;
         border-radius: 20px; 
     }
 
-    .description {
+    .history {
         width: 400px;
         height: 250px;
         padding: 10px;
@@ -291,6 +280,12 @@
     .note {
         font-size: 60%;
         color:rgb(201, 201, 201)
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 50px;
     }
     
 </style>

@@ -17,14 +17,15 @@
     /**
      * @type {any[]}
      */
+    let selecteditem = [];
+    /**
+     * @type {any[]}
+     */
     let items = [];
 
     let showAdd = false; 
     let showEdit = false;
     let showForm = false;
-    let isImageShown = false;
-
-
     let confirm = "";
     let message = "";
 
@@ -39,27 +40,23 @@
     /**
      * @type {any}
      */
-    let age;
+    let quantity;
     /**
      * @type {any}
      */
-     let nationality;
+    let value;
     /**
      * @type {any}
      */
-    let ethnicity;
+    let categories;
     /**
      * @type {any}
      */
-    let gender;
+    let owners;
     /**
      * @type {any}
      */
-    let species;
-    /**
-     * @type {any}
-     */
-    let bio;
+    let desc;
     /**
      * @type {any}
      */
@@ -67,7 +64,7 @@
     
 
     onMount(async () => {
-
+        
         const response = await fetch('http://localhost:3000/api/worlds/selected');
         
         if (response.ok) {
@@ -127,16 +124,12 @@
         });
 
         if (response.ok) {
-            const selectItem = await response.json();
-
-            if (selectItem.image){
-                isImageShown = true;
-            } else {
-                isImageShown = false;
-            }
+            const selecteditem = await response.json();
 
             return true;
-        } else {
+        } 
+
+        else{
             return false;
         }
 
@@ -182,50 +175,48 @@
         
         selectedID = newItem.selectedID;
         name = newItem.name;
-        age = newItem.age;
-        bio = newItem.bio;
+        quantity = newItem.quantity;
+        desc = newItem.desc;
         image = newItem.image;
 
-        let entities    =   [newItem.nationality, newItem.ethnicity, newItem.gender, newItem.species];
-        let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+        let entities    =   [newItem.categories, newItem.owners];
+        let entitiesVar =   ["categories", "characters"];
         
         for (let i = 0; i < entities.length; i++) {
-            
-            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-            
-            if(response.ok) {
-                const responseData = await response.json();
-                switch(entitiesVar[i]) {
-                    case "nationality": 
-                        nationality = responseData[0].name;
-                        break;
-                    case "ethnicity":
-                        ethnicity = responseData[0].name;
-                        break;
-                    case "gender":
-                        gender = responseData[0].name;
-                        break;
-                    case "species":
-                        species = responseData[0].name;
-                        break;                        
+                if (entities[i] && entities[i].length > 0) { 
+                    let names = [];
+
+                    for (let j = 0; j < entities[i].length; j++) {
+                        const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i][j]}`);
+
+                        if(response.ok) {
+                            const responseData = await response.json();
+                            names.push(responseData.name);
+                        } else {
+                            console.error(`Failed to fetch ${entitiesVar[i]} name`);
+                        }
                     }
-            } else {
-                switch(entitiesVar[i]) {
-                    case "nationality": 
-                        nationality = "";
-                        break;
-                    case "ethnicity":
-                        ethnicity = "";
-                        break;
-                    case "gender":
-                        gender = "";
-                        break;
-                    case "species":
-                        species = "";
-                        break;                        
+
+                    // Seperate the names into strings
+                    switch(entitiesVar[i]) {
+                        case "categories":
+                            categories = names.join(', ');
+                            break;
+                        case "characters":
+                            owners = names.join(', ');
+                            break;
+                    }
+                } else {
+                    switch(entitiesVar[i]) {
+                        case "categories":
+                            categories = "";
+                            break;
+                        case "characters":
+                            owners = "";
+                            break;
+                    }
                 }
             }
-        }
         
     };
     
@@ -269,19 +260,16 @@
                 }
                 
                 //Fetch updated items data
-                const updatedItemsResponse = await fetch(`http://localhost:3000/api/items/grab/${selectedworld._id}`);
+                const updatedItemsResponse = await fetch('http://localhost:3000/api/items');
                 const updatedItems = await updatedItemsResponse.json();
-
-                items = Array.isArray(updatedItems) ? updatedItems : [];
+                items = updatedItems.reverse();
 
                 name = "";
-                age = "";
-                bio = "";
+                quantity = "";
+                desc = "";
                 image  = "";
-                nationality = "";
-                ethnicity = "";
-                gender = "";
-                species = "";
+                categories = "";
+                owners = "";
                     
             }
             catch (error) {
@@ -307,65 +295,51 @@
             if (response.ok) {
                 const updatedItem = await response.json();
                 
+                selecteditem = updatedItem;
                 selectedID = updatedItem._id;
                 name = updatedItem.name;
-                age = updatedItem.age;
-                bio = updatedItem.bio;
-                image = updatedItem.image;
+                quantity = updatedItem.quantity;
+                desc = updatedItem.desc;
                 
-                let entities    =   [updatedItem.nationality, updatedItem.ethnicity, updatedItem.gender, updatedItem.species];
-                let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+                let entities    =   [updatedItem.categories, updatedItem.owners];
+                let entitiesVar =   ["categories", "characters"];
                 
-
+                
                 for (let i = 0; i < entities.length; i++) {
-                    
-                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-                    
-                    if(response.ok) {
-                        const responseData = await response.json();
-
-                        
-                        switch(entitiesVar[i]) {
-                            case "nationality": 
-                                nationality = responseData[0].name;
-                        
-                                break;
-                            case "ethnicity":
-                                ethnicity = responseData[0].name;
-                
-                                break;
-                            case "gender":
-                                gender = responseData[0].name;
-                                break;
-                            case "species":
-                                species = responseData[0].name;
-                                break;                        
+                    let names = [];
+                    if (entities[i] && entities[i].length > 0) { 
+                        for (let j = 0; j < entities[i].length; j++) {
+                            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i][j]}`);
+                            if (response.ok) {
+                                const responseData = await response.json();
+                                names.push(responseData.name);
+                            } else {
+                                console.error(`Failed to fetch ${entitiesVar[i]} name`);
+                            }
                         }
                     }
-
-                }
                 
-                //Fetch updated items data
-                const updatedItemsResponse = await fetch(`http://localhost:3000/api/items/grab/${selectedworld._id}`);
-                const updatedItems = await updatedItemsResponse.json();
 
-                items = Array.isArray(updatedItems) ? updatedItems : [];
-
-                name = "";
-                age = "";
-                bio = "";
-                image  = "";
-                nationality = "";
-                ethnicity = "";
-                gender = "";
-                species = "";
-            } 
-            else {
-            console.error('Error editing item:', response.status);
+                // Separate the names into strings
+                switch(entitiesVar[i]) {
+                    case "categories":
+                        categories = names.join(', ');
+                        break;
+                    case "characters":
+                        owners = names.join(', ');
+                        break;
+                }
             }
-        } 
-    
-        catch (error) {
+                
+                // Fetch updated items
+                const updatedItemsResponse = await fetch('http://localhost:3000/api/items');
+                const updatedItems = await updatedItemsResponse.json();
+                items = updatedItems.reverse();
+            } else {
+                console.error('Error editing item:', response.status);
+            }
+
+        } catch (error) {
             console.error('Failed to fetch:', error);
         }
     };
@@ -375,9 +349,9 @@
         showEdit = !showEdit;
     };
     
-    function handleFileChange(e) {
+    function handleFileChange(event) {
         if (selectedID) {
-            const file = e.target.files[0];
+            const file = event.target.files[0];
             const reader = new FileReader();
             
             reader.onload = async () => {
@@ -389,9 +363,6 @@
                 };
                 
                 editItem(item);
-
-                isImageShown = true;
-
             };
         
             reader.readAsDataURL(file);
@@ -418,8 +389,6 @@
                 };
         
                 editItem(item);
-
-                isImageShown = false;
                 
             } else {
                 console.error("No Item Selected");
@@ -433,71 +402,59 @@
     };
 
     async function refreshData(object) {
-
         let finished = handleSelect(object);
         
         if (finished) {
             name = object.name;
-            age = object.age;
-            bio = object.bio;
+            quantity = object.quantity;
+            desc = object.desc;
             image = object.image; 
 
-            let entities    =   [object.nationality, object.ethnicity, object.gender, object.species];
-            let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+            let entities    =   [object.categories, object.owners];
+            let entitiesVar =   ["categories", "characters"];
 
             for (let i = 0; i < entities.length; i++) {
+                if (entities[i] && entities[i].length > 0) { 
+                    let names = [];
 
-                if (entities[i] != (undefined || "")){
-                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-    
-                    if(response.ok) {
-                        const responseData = await response.json();
-    
-                        switch(entitiesVar[i]) {
-                            case "nationality":
-                                nationality = responseData[0].name;
-                                break;
-                            case "ethnicity":
-                                ethnicity = responseData[0].name;
-                                break;
-                            case "gender":
-                                gender = responseData[0].name;
-                                break;
-                            case "species":
-                                species = responseData[0].name;
-                                break;
+                    for (let j = 0; j < entities[i].length; j++) {
+                        const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i][j]}`);
+
+                        if(response.ok) {
+                            const responseData = await response.json();
+                            names.push(responseData.name);
+                        } else {
+                            console.error(`Failed to fetch ${entitiesVar[i]} name`);
                         }
-    
                     }
 
+                    // Seperate the names into strings
+                    switch(entitiesVar[i]) {
+                        case "categories":
+                            categories = names.join(', ');
+                            break;
+                        case "characters":
+                            owners = names.join(', ');
+                            break;
+                    }
                 } else {
                     switch(entitiesVar[i]) {
-                        case "nationality":
-                            nationality = "";
+                        case "categories":
+                            categories = "";
                             break;
-                        case "ethnicity":
-                            ethnicity = "";
-                            break;
-                        case "gender":
-                            gender = "";
-                            break;
-                        case "species":
-                            species = "";
+                        case "characters":
+                            owners = "";
                             break;
                     }
-
                 }
-
             }
-        }
-        else {
+        } else {
             console.error("Couldn't finish. Failed to Select Item");  
         }
     };
 
 </script>
 
-<!-- Confirmation -->
 <Form {showForm}>
     <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
 </Form>
@@ -541,22 +498,21 @@
     </div>
     
     <div class="box" id="imageslot">
-        <br>
-        <h2>CLICK ON THE IMAGE BELOW TO <br>UPLOAD THE IMAGE OF YOUR PLACE<br><br>RECOMMENDED SIZE: (1080 x 1920)</h2>
+        <br><h2>CLICK ON THE IMAGE BELOW TO <br>UPLOAD THE IMAGE OF YOUR ITEM<br><br>RECOMMENDED SIZE: (1080 x 1920)</h2>
         <br><br>
         <div id="image-box">
             <label for="file-upload" class="custom-file-upload">
                 <input id="file-upload" type="file" accept="image/*" on:change={handleFileChange}/>
-                {#if isImageShown}
-                    <img src={image} alt='' id="image"/>
+                {#if image}
+                <img src={image} alt='' id="image">
                 {:else}
-                    <img src="../src/assets/blank image_vert.png" alt='' id="image">
-      
+                <img src="../src/assets/blank image_vert.png" alt='' id="image">
                 {/if}
             </label>
         </div>
         <br>
-        <button title="Remove Image" class="remove" on:click={handleFileRemove}>REMOVE IMAGE</button>
+        <button title="Remove Image" class="remove" on:click={() => handleFileRemove()}>REMOVE IMAGE</button>
+
     </div>
 
     <div class="box" id="description">
@@ -581,60 +537,40 @@
                     {/if}
                 </h3>
 
-                <h3>AGE:
-                    {#if age}
+                <h3>QUANTITY:
+                    {#if quantity}
                         <span class="display">
-                            {age}
+                            {quantity}
                         </span> 
                     {:else}
                         Unknown
                     {/if}
                 </h3> 
                 
-                <h3>ETHNICITY:
-                    {#if ethnicity}
+                <h3>NOTABLE CHARACTERS:
+                    {#if owners}
                     <span class="display">
-                        {ethnicity}
+                        {owners}
                     </span>  
                     {:else}
                         Unknown
                     {/if}
                 </h3> 
 
-                <h3>NATIONALITY:
-                    {#if nationality}
+                <h3>CATEGORIES:
+                    {#if categories}
                     <span class="display">
-                        {nationality}
+                        {categories}
                     </span> 
                     {:else}
                         Unknown
                     {/if}
                 </h3> 
-                
-                <h3>GENDER:
-                    {#if gender}
-                    <span class="display">
-                        {gender}
-                    </span>  
-                    {:else}
-                        Unknown
-                    {/if}
-                </h3> 
 
-                <h3>SPECIES:
-                    {#if species}
+                <h3>DESCRIPTION:
+                    {#if desc}
                     <span class="display">
-                        {species}
-                    </span>  
-                    {:else}
-                        Unknown
-                    {/if}
-                </h3> 
-
-                <h3>BIO:
-                    {#if bio}
-                    <span class="display">
-                        {bio}
+                        {desc}
                     </span>  
                     {:else}
                         Unknown

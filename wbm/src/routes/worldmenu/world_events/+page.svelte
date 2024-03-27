@@ -17,14 +17,15 @@
     /**
      * @type {any[]}
      */
+    let selectedevent = [];
+    /**
+     * @type {any[]}
+     */
     let events = [];
 
     let showAdd = false; 
     let showEdit = false;
     let showForm = false;
-    let isImageShown = false;
-
-
     let confirm = "";
     let message = "";
 
@@ -39,27 +40,19 @@
     /**
      * @type {any}
      */
-    let age;
+    let date;
     /**
      * @type {any}
      */
-     let nationality;
+    let locations;
     /**
      * @type {any}
      */
-    let ethnicity;
+    let notable_characters;
     /**
      * @type {any}
      */
-    let gender;
-    /**
-     * @type {any}
-     */
-    let species;
-    /**
-     * @type {any}
-     */
-    let bio;
+    let history;
     /**
      * @type {any}
      */
@@ -67,7 +60,7 @@
     
 
     onMount(async () => {
-
+        
         const response = await fetch('http://localhost:3000/api/worlds/selected');
         
         if (response.ok) {
@@ -79,7 +72,7 @@
 
         if (response2.ok) {
             const data = await response2.json();
-            events = data;
+            events = data.sort((a, b) => new Date(b.date) - new Date(a.date));
         }
 
     });
@@ -115,6 +108,20 @@
             await new Promise(resolve => setTimeout(resolve, 100));
         }
     };
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const options = { month: 'long', day: 'numeric', year: 'numeric' };
+        const formattedDate = date.toLocaleDateString('en-US', options);
+
+        const day = date.getDate();
+        const suffix = (day === 1 || day === 21 || day === 31) ? 'st' :
+                        (day === 2 || day === 22) ? 'nd' :
+                        (day === 3 || day === 23) ? 'rd' : 'th';
+        
+        return formattedDate.replace(/\b(\d{1,2})\b/g, `$1${suffix}`);
+    };
+
     
     async function handleSelect(object){
         selectedID = object._id;
@@ -127,16 +134,12 @@
         });
 
         if (response.ok) {
-            const selectEvent = await response.json();
-
-            if (selectEvent.image){
-                isImageShown = true;
-            } else {
-                isImageShown = false;
-            }
+            const selectedevent = await response.json();
 
             return true;
-        } else {
+        } 
+
+        else{
             return false;
         }
 
@@ -145,6 +148,7 @@
     const addEvent = async(e) => {
         
         const newEvent = e.detail;
+        console.log(newEvent.name);
         
         fetch('http://localhost:3000/api/events/add', {
             method: 'POST',
@@ -157,10 +161,7 @@
             
             if (response.ok) {
                 return response.json();
-                
-            } 
-            
-            else {
+            } else {
                 throw new Error('Failed to add event');
             }
             
@@ -182,50 +183,46 @@
         
         selectedID = newEvent.selectedID;
         name = newEvent.name;
-        age = newEvent.age;
-        bio = newEvent.bio;
+        date = newEvent.date;
+        history = newEvent.history;
         image = newEvent.image;
 
-        let entities    =   [newEvent.nationality, newEvent.ethnicity, newEvent.gender, newEvent.species];
-        let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+        const response = await fetch(`http://localhost:3000/api/places/grab/${newEvent.location}`)
+            const data = await response.json();
+            locations = data.name;
+
+        let entities    =   [newEvent.notable_characters];
+        let entitiesVar =   ["characters"];
         
         for (let i = 0; i < entities.length; i++) {
-            
-            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-            
-            if(response.ok) {
-                const responseData = await response.json();
-                switch(entitiesVar[i]) {
-                    case "nationality": 
-                        nationality = responseData[0].name;
-                        break;
-                    case "ethnicity":
-                        ethnicity = responseData[0].name;
-                        break;
-                    case "gender":
-                        gender = responseData[0].name;
-                        break;
-                    case "species":
-                        species = responseData[0].name;
-                        break;                        
+                if (entities[i] && entities[i].length > 0) { 
+                    let names = [];
+
+                    for (let j = 0; j < entities[i].length; j++) {
+                        const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i][j]}`);
+
+                        if(response.ok) {
+                            const responseData = await response.json();
+                            names.push(responseData.name);
+                        } else {
+                            console.error(`Failed to fetch ${entitiesVar[i]} name`);
+                        }
                     }
-            } else {
-                switch(entitiesVar[i]) {
-                    case "nationality": 
-                        nationality = "";
-                        break;
-                    case "ethnicity":
-                        ethnicity = "";
-                        break;
-                    case "gender":
-                        gender = "";
-                        break;
-                    case "species":
-                        species = "";
-                        break;                        
+
+                    // Seperate the names into strings
+                    switch(entitiesVar[i]) {
+                        case "characters":
+                            notable_characters = names.join(', ');
+                            break;
+                    }
+                } else {
+                    switch(entitiesVar[i]){
+                        case "characters":
+                            notable_characters = "";
+                            break;
+                    }
                 }
             }
-        }
         
     };
     
@@ -269,19 +266,16 @@
                 }
                 
                 //Fetch updated events data
-                const updatedEventsResponse = await fetch(`http://localhost:3000/api/events/grab/${selectedworld._id}`);
+                const updatedEventsResponse = await fetch('http://localhost:3000/api/events');
                 const updatedEvents = await updatedEventsResponse.json();
-
-                events = Array.isArray(updatedEvents) ? updatedEvents : [];
+                events = updatedEvents.reverse();
 
                 name = "";
-                age = "";
-                bio = "";
+                date = "";
+                history = "";
                 image  = "";
-                nationality = "";
-                ethnicity = "";
-                gender = "";
-                species = "";
+                locations = "";
+                notable_characters = "";
                     
             }
             catch (error) {
@@ -307,65 +301,51 @@
             if (response.ok) {
                 const updatedEvent = await response.json();
                 
+                selectedevent = updatedEvent;
                 selectedID = updatedEvent._id;
                 name = updatedEvent.name;
-                age = updatedEvent.age;
-                bio = updatedEvent.bio;
-                image = updatedEvent.image;
+                date = updatedEvent.date;
+                history = updatedEvent.history;
                 
-                let entities    =   [updatedEvent.nationality, updatedEvent.ethnicity, updatedEvent.gender, updatedEvent.species];
-                let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+                let entities    =   [updatedEvent.locations, updatedEvent.notable_characters];
+                let entitiesVar =   ["places", "characters"];
                 
-
+                
                 for (let i = 0; i < entities.length; i++) {
-                    
-                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-                    
-                    if(response.ok) {
-                        const responseData = await response.json();
-
-                        
-                        switch(entitiesVar[i]) {
-                            case "nationality": 
-                                nationality = responseData[0].name;
-                        
-                                break;
-                            case "ethnicity":
-                                ethnicity = responseData[0].name;
-                
-                                break;
-                            case "gender":
-                                gender = responseData[0].name;
-                                break;
-                            case "species":
-                                species = responseData[0].name;
-                                break;                        
+                    let names = [];
+                    if (entities[i] && entities[i].length > 0) { 
+                        for (let j = 0; j < entities[i].length; j++) {
+                            const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i][j]}`);
+                            if (response.ok) {
+                                const responseData = await response.json();
+                                names.push(responseData.name);
+                            } else {
+                                console.error(`Failed to fetch ${entitiesVar[i]} name`);
+                            }
                         }
                     }
-
-                }
                 
-                //Fetch updated events data
-                const updatedEventsResponse = await fetch(`http://localhost:3000/api/events/grab/${selectedworld._id}`);
-                const updatedEvents = await updatedEventsResponse.json();
 
-                events = Array.isArray(updatedEvents) ? updatedEvents : [];
-
-                name = "";
-                age = "";
-                bio = "";
-                image  = "";
-                nationality = "";
-                ethnicity = "";
-                gender = "";
-                species = "";
-            } 
-            else {
-            console.error('Error editing event:', response.status);
+                // Separate the names into strings
+                switch(entitiesVar[i]) {
+                    case "places":
+                        locations = names.join(', ');
+                        break;
+                    case "characters":
+                        notable_characters = names.join(', ');
+                        break;
+                }
             }
-        } 
-    
-        catch (error) {
+                
+                // Fetch updated events
+                const updatedEventsResponse = await fetch('http://localhost:3000/api/events');
+                const updatedEvents = await updatedEventsResponse.json();
+                events = updatedEvents.reverse();
+            } else {
+                console.error('Error editing event:', response.status);
+            }
+
+        } catch (error) {
             console.error('Failed to fetch:', error);
         }
     };
@@ -375,9 +355,9 @@
         showEdit = !showEdit;
     };
     
-    function handleFileChange(e) {
+    function handleFileChange(event) {
         if (selectedID) {
-            const file = e.target.files[0];
+            const file = event.target.files[0];
             const reader = new FileReader();
             
             reader.onload = async () => {
@@ -389,9 +369,6 @@
                 };
                 
                 editEvent(event);
-
-                isImageShown = true;
-
             };
         
             reader.readAsDataURL(file);
@@ -418,8 +395,6 @@
                 };
         
                 editEvent(event);
-
-                isImageShown = false;
                 
             } else {
                 console.error("No Event Selected");
@@ -433,71 +408,60 @@
     };
 
     async function refreshData(object) {
-
         let finished = handleSelect(object);
         
         if (finished) {
             name = object.name;
-            age = object.age;
-            bio = object.bio;
-            image = object.image; 
+            date = object.date;
+            history = object.history;
+            image = object.image;
 
-            let entities    =   [object.nationality, object.ethnicity, object.gender, object.species];
-            let entitiesVar =   ["nationality", "ethnicity", "gender", "species"];
+            const response = await fetch(`http://localhost:3000/api/places/grab/${object.location}`)
+            const data = await response.json();
+
+            locations = data.name;
+
+
+
+            let entities    =   [object.notable_characters];
+            let entitiesVar =   ["characters"];
 
             for (let i = 0; i < entities.length; i++) {
+                if (entities[i] && entities[i].length > 0) { 
+                    let names = [];
 
-                if (entities[i] != (undefined || "")){
-                    const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i]}`);
-    
-                    if(response.ok) {
-                        const responseData = await response.json();
-    
-                        switch(entitiesVar[i]) {
-                            case "nationality":
-                                nationality = responseData[0].name;
-                                break;
-                            case "ethnicity":
-                                ethnicity = responseData[0].name;
-                                break;
-                            case "gender":
-                                gender = responseData[0].name;
-                                break;
-                            case "species":
-                                species = responseData[0].name;
-                                break;
+                    for (let j = 0; j < entities[i].length; j++) {
+                        const response = await fetch(`http://localhost:3000/api/${entitiesVar[i]}/grab/${entities[i][j]}`);
+
+                        if(response.ok) {
+                            const responseData = await response.json();
+                            names.push(responseData.name);
+                        } else {
+                            console.error(`Failed to fetch ${entitiesVar[i]} name`);
                         }
-    
                     }
 
+                    // Seperate the names into strings
+                    switch(entitiesVar[i]) {
+                        case "characters":
+                            notable_characters = names.join(', ');
+                            break;
+                    }
                 } else {
                     switch(entitiesVar[i]) {
-                        case "nationality":
-                            nationality = "";
-                            break;
-                        case "ethnicity":
-                            ethnicity = "";
-                            break;
-                        case "gender":
-                            gender = "";
-                            break;
-                        case "species":
-                            species = "";
+                        case "characters":
+                            notable_characters = "";
                             break;
                     }
-
                 }
-
             }
-        }
-        else {
+        } else {
             console.error("Couldn't finish. Failed to Select Event");  
         }
     };
 
 </script>
 
-<!-- Confirmation -->
 <Form {showForm}>
     <Confirm message={message} on:Yes={()=>setConfirm("Y")} on:No={()=>setConfirm("N")}/>
 </Form>
@@ -531,7 +495,7 @@
                     <div class="event">
                         <button on:click = {ShowEdit(event)} title="Edit {event.name}" class="editbutton"><h1 class="edit"><img src="../src/assets/edit.png" alt="" class="edit"/></button>
                             
-                        <button on:click = {refreshData(event)} title="Select {event.name}" class="listbutton" class:selected = { event._id == selectedID }><h3 class="listname">{event.name}</h3></button>
+                        <button on:click = {refreshData(event)} title="Select {event.name}" class="listbutton" class:selected = { event._id == selectedID }><h3 class="listname">{event.name} - {event.date.split('-')[0]}</h3></button>
 
                         <button on:click = {() => deleteEvent(event)} title="Delete {event.name}"class="deletebutton"><img src="../src/assets/delete.png" alt="" class="delete"/></button>
                     </div>    
@@ -541,22 +505,21 @@
     </div>
     
     <div class="box" id="imageslot">
-        <br>
-        <h2>CLICK ON THE IMAGE BELOW TO <br>UPLOAD THE IMAGE OF YOUR PLACE<br><br>RECOMMENDED SIZE: (1080 x 1920)</h2>
+        <br><h2>CLICK ON THE IMAGE BELOW TO <br>UPLOAD THE IMAGE OF YOUR EVENT<br><br>RECOMMENDED SIZE: (1080 x 1920)</h2>
         <br><br>
         <div id="image-box">
             <label for="file-upload" class="custom-file-upload">
                 <input id="file-upload" type="file" accept="image/*" on:change={handleFileChange}/>
-                {#if isImageShown}
-                    <img src={image} alt='' id="image"/>
+                {#if image}
+                <img src={image} alt='' id="image">
                 {:else}
-                    <img src="../src/assets/blank image_vert.png" alt='' id="image">
-      
+                <img src="../src/assets/blank image_vert.png" alt='' id="image">
                 {/if}
             </label>
         </div>
         <br>
-        <button title="Remove Image" class="remove" on:click={handleFileRemove}>REMOVE IMAGE</button>
+        <button title="Remove Image" class="remove" on:click={() => handleFileRemove()}>REMOVE IMAGE</button>
+
     </div>
 
     <div class="box" id="description">
@@ -581,60 +544,40 @@
                     {/if}
                 </h3>
 
-                <h3>AGE:
-                    {#if age}
+                <h3>DATE:
+                    {#if date}
                         <span class="display">
-                            {age}
+                            {formatDate(date)}
                         </span> 
                     {:else}
                         Unknown
                     {/if}
                 </h3> 
                 
-                <h3>ETHNICITY:
-                    {#if ethnicity}
+                <h3>NOTABLE CHARACTERS:
+                    {#if notable_characters}
                     <span class="display">
-                        {ethnicity}
+                        {notable_characters}
                     </span>  
                     {:else}
                         Unknown
                     {/if}
                 </h3> 
 
-                <h3>NATIONALITY:
-                    {#if nationality}
+                <h3>LOCATION:
+                    {#if locations}
                     <span class="display">
-                        {nationality}
+                        {locations}
                     </span> 
                     {:else}
                         Unknown
                     {/if}
                 </h3> 
-                
-                <h3>GENDER:
-                    {#if gender}
-                    <span class="display">
-                        {gender}
-                    </span>  
-                    {:else}
-                        Unknown
-                    {/if}
-                </h3> 
 
-                <h3>SPECIES:
-                    {#if species}
+                <h3>HISTORY:
+                    {#if history}
                     <span class="display">
-                        {species}
-                    </span>  
-                    {:else}
-                        Unknown
-                    {/if}
-                </h3> 
-
-                <h3>BIO:
-                    {#if bio}
-                    <span class="display">
-                        {bio}
+                        {history}
                     </span>  
                     {:else}
                         Unknown

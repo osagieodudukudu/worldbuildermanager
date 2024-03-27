@@ -150,12 +150,30 @@
                 method: 'DELETE',
             })
                 .then((response) => {
-                if (response.ok) {
-                    return fetch('http://localhost:3000/api/worlds');
-                } 
-                else {
-                    throw new Error(`Failed to delete world with ID ${id}`);
-                }
+                    if (response.ok) {
+                        return fetch(`http://localhost:3000/api/cleanup/${id}`, {
+                            method: 'DELETE',
+                        })
+                    } else {
+                        throw new Error(`Failed to delete world's characters, places, items, and events with ID ${id}`);
+                    }
+                })
+                .then((response) => {
+                    if (response.ok) {
+                        return fetch(`http://localhost:3000/api/cleanup`, {
+                            method: 'DELETE',
+                        })
+                    } else {
+                        throw new Error(`Failed to delete world's subentities with ID ${id}`);
+                    }
+                })
+                .then((response) => {
+                    if (response.ok) {
+                        return fetch('http://localhost:3000/api/worlds');
+                    } 
+                    else {
+                        throw new Error(`Failed to delete world with ID ${id}`);
+                    }
                 })
                 .then((response) => response.json())
                 .then((updatedWorlds) => {

@@ -197,16 +197,16 @@
                 const responseData = await response.json();
                 switch(entitiesVar[i]) {
                     case "nationality": 
-                        nationality = responseData[0].name;
+                        nationality = responseData.name;
                         break;
                     case "ethnicity":
-                        ethnicity = responseData[0].name;
+                        ethnicity = responseData.name;
                         break;
                     case "gender":
-                        gender = responseData[0].name;
+                        gender = responseData.name;
                         break;
                     case "species":
-                        species = responseData[0].name;
+                        species = responseData.name;
                         break;                        
                     }
             } else {
@@ -455,16 +455,16 @@
     
                         switch(entitiesVar[i]) {
                             case "nationality":
-                                nationality = responseData[0].name;
+                                nationality = responseData.name;
                                 break;
                             case "ethnicity":
-                                ethnicity = responseData[0].name;
+                                ethnicity = responseData.name;
                                 break;
                             case "gender":
-                                gender = responseData[0].name;
+                                gender = responseData.name;
                                 break;
                             case "species":
-                                species = responseData[0].name;
+                                species = responseData.name;
                                 break;
                         }
     
